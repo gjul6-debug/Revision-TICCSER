@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fiche révision — ECS · VMC · CETI · Solaire</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f4f1ea; --bg2:#ffffff; --panel:#ffffff; --line:#d9d3c6;
+    --txt:#0f1f33; --muted:#5b6b7d;
+    --navy:#143a5a; --navy2:#1d5a86; --accent:#c2562b; --green:#1f7a4d;
+    --d-secu:#b3261e; --d-press:#c2562b; --d-eau:#0f6f63; --d-debit:#1f4f8b;
+    --d-haut:#1d5a86; --d-evac:#1f7a4d; --d-pvc:#7a4d8c; --d-pmr:#9a6700;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:"IBM Plex Sans",sans-serif;background:var(--bg);color:var(--txt);
+    line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh;
+    background-image:
+      linear-gradient(rgba(20,58,90,.035) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(20,58,90,.035) 1px,transparent 1px);
+    background-size:26px 26px;
+  }
+  .wrap{max-width:760px;margin:0 auto;padding:22px 16px 60px}
+
+  header{margin-bottom:18px}
+  .kicker{font-family:"IBM Plex Mono",monospace;font-size:.72rem;letter-spacing:.2em;color:var(--accent);text-transform:uppercase}
+  h1{font-family:"Archivo",sans-serif;font-weight:800;font-size:2rem;line-height:1.05;letter-spacing:-.01em;margin:.15em 0 .1em;color:var(--navy)}
+  h1 .amp{color:var(--accent)}
+  .sub{color:var(--muted);font-size:.9rem}
+  .src-note{margin-top:10px;font-family:"IBM Plex Mono",monospace;font-size:.7rem;color:var(--muted);border-left:3px solid var(--accent);padding-left:10px;line-height:1.6}
+
+  .tabs{display:flex;gap:6px;margin:18px 0 14px;background:#e9e3d8;padding:5px;border-radius:14px;border:1px solid var(--line)}
+  .tab{flex:1;border:0;background:transparent;color:var(--muted);font-family:"Archivo",sans-serif;font-weight:700;font-size:.86rem;padding:10px 4px;border-radius:10px;cursor:pointer;transition:.18s;display:flex;align-items:center;justify-content:center;gap:5px}
+  .tab.active{background:linear-gradient(135deg,var(--navy),var(--accent));color:#fff;box-shadow:0 4px 14px rgba(20,58,90,.22)}
+  .tab .ic{font-size:1rem}
+
+  .filters{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+  .chip{font-family:"IBM Plex Mono",monospace;font-size:.7rem;letter-spacing:.03em;padding:6px 11px;border-radius:20px;border:1px solid var(--line);background:#fff;color:var(--muted);cursor:pointer;transition:.15s;text-transform:uppercase}
+  .chip.on{color:#fff;font-weight:600;border-color:transparent}
+  .chip[data-d="all"].on{background:var(--navy)}
+
+  .progress{display:flex;align-items:center;gap:12px;margin-bottom:12px;font-family:"IBM Plex Mono",monospace;font-size:.78rem;color:var(--muted)}
+  .bar{flex:1;height:8px;background:#e3ddd0;border-radius:6px;overflow:hidden;border:1px solid var(--line)}
+  .bar > i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--navy),var(--green));transition:.3s}
+
+  .scene{perspective:1400px;margin-bottom:16px}
+  .card{position:relative;width:100%;min-height:300px;transform-style:preserve-3d;transition:transform .55s cubic-bezier(.4,.2,.2,1);cursor:pointer}
+  .card.flipped{transform:rotateY(180deg)}
+  .face{position:absolute;inset:0;backface-visibility:hidden;border-radius:18px;border:1px solid var(--line);padding:24px 22px;display:flex;flex-direction:column;background:var(--panel);box-shadow:0 12px 30px rgba(20,40,70,.10)}
+  .face.back{transform:rotateY(180deg);background:linear-gradient(160deg,#fbf9f4,#f1ece2)}
+  .face::before{content:"";position:absolute;left:0;top:18px;bottom:18px;width:5px;border-radius:5px;background:var(--dcol,var(--accent))}
+  .meta{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:auto}
+  .dom{font-family:"IBM Plex Mono",monospace;font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--dcol,var(--accent));font-weight:600}
+  .badges{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}
+  .b{font-family:"IBM Plex Mono",monospace;font-size:.62rem;padding:3px 7px;border-radius:20px;border:1px solid var(--line);color:var(--muted);letter-spacing:.03em}
+  .b.crit{background:#fbe9e7;color:#b3261e;border-color:#f0c4bf}
+  .b.eleve{background:#fdf3df;color:#9a6700;border-color:#ecdcad}
+  .q-label,.a-label{font-family:"IBM Plex Mono",monospace;font-size:.66rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+  .q-txt{font-family:"Archivo",sans-serif;font-weight:700;font-size:1.35rem;line-height:1.18;margin-top:8px;color:var(--navy)}
+  .a-txt{font-size:1.08rem;font-weight:500;line-height:1.4;margin-top:8px}
+  .a-txt b{color:var(--navy);font-family:"IBM Plex Mono",monospace;font-weight:600}
+  .src{margin-top:auto;font-family:"IBM Plex Mono",monospace;font-size:.66rem;color:var(--muted);padding-top:14px}
+  .flip-hint{position:absolute;bottom:16px;right:18px;font-family:"IBM Plex Mono",monospace;font-size:.62rem;color:var(--muted);opacity:.7}
+
+  .nav{display:flex;gap:10px}
+  .nav button{flex:1;border:1.5px solid var(--line);background:#fff;color:var(--txt);font-family:"Archivo",sans-serif;font-weight:700;font-size:.92rem;padding:13px;border-radius:12px;cursor:pointer;transition:.15s}
+  .nav button:hover{border-color:var(--navy)}
+  .nav button.know{color:var(--green)}
+  .nav button.know:hover{border-color:var(--green)}
+  .nav button.review{color:var(--accent)}
+  .nav button.review:hover{border-color:var(--accent)}
+  .nav button:active{transform:translateY(1px)}
+
+  .quiz-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;font-family:"IBM Plex Mono",monospace;font-size:.8rem;color:var(--muted)}
+  .score{color:var(--accent);font-weight:600}
+  .quiz-card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:24px 22px;box-shadow:0 12px 30px rgba(20,40,70,.10)}
+  .quiz-card .dom{margin-bottom:14px}
+  .quiz-q{font-family:"Archivo",sans-serif;font-weight:700;font-size:1.28rem;line-height:1.2;margin-bottom:20px;color:var(--navy)}
+  .opts{display:flex;flex-direction:column;gap:10px}
+  .opt{text-align:left;border:1.5px solid var(--line);background:#fff;color:var(--txt);font-family:"IBM Plex Sans",sans-serif;font-size:1.02rem;padding:14px 16px;border-radius:12px;cursor:pointer;transition:.15s;display:flex;gap:10px;align-items:center}
+  .opt:hover:not(.locked){border-color:var(--navy);transform:translateX(3px)}
+  .opt .k{font-family:"IBM Plex Mono",monospace;font-size:.8rem;color:var(--muted);border:1px solid var(--line);border-radius:6px;width:24px;height:24px;display:flex;align-items:center;justify-content:center;flex:none}
+  .opt.good{border-color:var(--green);background:#e3f3ea}
+  .opt.good .k{border-color:var(--green);color:var(--green)}
+  .opt.bad{border-color:var(--d-secu);background:#fbe9e7}
+  .opt.bad .k{border-color:var(--d-secu);color:var(--d-secu)}
+  .expl{margin-top:16px;font-size:.92rem;color:var(--muted);border-left:3px solid var(--accent);padding:8px 0 8px 12px;display:none}
+  .expl.show{display:block}
+  .qbtn{margin-top:18px;width:100%;border:0;background:linear-gradient(135deg,var(--navy),var(--accent));color:#fff;font-family:"Archivo",sans-serif;font-weight:800;font-size:1rem;padding:14px;border-radius:12px;cursor:pointer;transition:.15s}
+  .qbtn:active{transform:translateY(1px)}
+  .qbtn[disabled]{opacity:.45;cursor:not-allowed}
+
+  .result{text-align:center;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:38px 24px;box-shadow:0 12px 30px rgba(20,40,70,.10)}
+  .result .big{font-family:"Archivo",sans-serif;font-weight:800;font-size:3.4rem;line-height:1;color:var(--accent)}
+  .result .lbl{color:var(--muted);font-family:"IBM Plex Mono",monospace;font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;margin:8px 0 4px}
+  .result .verdict{font-family:"Archivo",sans-serif;font-weight:700;font-size:1.25rem;margin:14px 0 22px;color:var(--navy)}
+
+  .search{width:100%;background:#fff;border:1.5px solid var(--line);border-radius:12px;color:var(--txt);font-family:"IBM Plex Sans",sans-serif;font-size:.95rem;padding:12px 14px;margin-bottom:14px}
+  .search::placeholder{color:var(--muted)}
+  .row{background:var(--panel);border:1px solid var(--line);border-left:5px solid var(--dcol,var(--accent));border-radius:12px;padding:13px 15px;margin-bottom:9px}
+  .row .top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:5px}
+  .row .el{font-weight:600;font-size:.97rem;color:var(--navy)}
+  .row .val{font-family:"IBM Plex Mono",monospace;color:var(--accent);font-weight:600;font-size:.9rem;margin:2px 0 5px}
+  .row .foot{display:flex;justify-content:space-between;gap:8px;font-family:"IBM Plex Mono",monospace;font-size:.66rem;color:var(--muted)}
+  .empty{text-align:center;color:var(--muted);padding:30px;font-family:"IBM Plex Mono",monospace;font-size:.85rem}
+
+  /* MÉMO */
+  .memo-block{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px 20px;margin-bottom:14px;box-shadow:0 8px 22px rgba(20,40,70,.07)}
+  .memo-block h2{font-family:"Archivo",sans-serif;font-size:1.05rem;color:var(--navy);margin-bottom:4px;display:flex;align-items:center;gap:8px}
+  .memo-block .tag{font-family:"IBM Plex Mono",monospace;font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:20px;background:#eef1f5;color:var(--navy2)}
+  .memo-block ul{list-style:none;margin-top:10px}
+  .memo-block li{position:relative;padding:7px 0 7px 20px;font-size:.93rem;border-bottom:1px dashed var(--line)}
+  .memo-block li:last-child{border-bottom:0}
+  .memo-block li::before{content:"▸";position:absolute;left:0;color:var(--accent);font-weight:700}
+  .memo-block li b{font-family:"IBM Plex Mono",monospace;color:var(--navy);font-weight:600}
+  .memo-block.warn{border-left:5px solid var(--d-secu)}
+  .memo-block.confuse{border-left:5px solid var(--accent)}
+  .memo-block.verif{border-left:5px solid var(--navy2)}
+  .memo-block.prio{border-left:5px solid var(--green)}
+
+  .footer{margin-top:30px;text-align:center;font-family:"IBM Plex Mono",monospace;font-size:.66rem;color:var(--muted);line-height:1.7}
+  .hide{display:none!important}
+
+  /* dos de carte enrichi + cartes longues défilables */
+  .face{overflow-y:auto}
+  .card{min-height:340px}
+  .bk-line{font-size:.86rem;line-height:1.35;margin-top:9px;color:var(--txt)}
+  .bk-tag{display:inline-block;font-family:"IBM Plex Mono",monospace;font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-right:6px;font-weight:600}
+  .bk-ch{border-left:3px solid var(--green);padding-left:9px}
+  .bk-m{border-left:3px solid var(--accent);padding-left:9px;font-style:italic;color:var(--navy)}
+  /* lignes enrichies du tableau */
+  .row .rmeta{font-size:.8rem;color:var(--muted);margin:3px 0;line-height:1.35}
+  .row .rmeta b{font-family:"IBM Plex Mono",monospace;font-size:.6rem;letter-spacing:.06em;text-transform:uppercase;color:var(--navy2);margin-right:5px;font-weight:600}
+  .row .rch{color:var(--txt)}
+  .row .rmnemo{font-size:.82rem;font-style:italic;color:var(--navy);background:#faf3ec;border-radius:8px;padding:5px 9px;margin:6px 0 2px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a href="index.html" style="display:inline-flex;align-items:center;gap:6px;text-decoration:none;font-family:'IBM Plex Mono',monospace;font-size:.74rem;letter-spacing:.06em;color:#5b6b7d;border:1px solid #d9d3c6;background:#fff;border-radius:10px;padding:7px 12px;margin-bottom:14px">← Accueil</a>
+  <header>
+    <div class="kicker">Révision terrain · TIECC / CVC</div>
+    <h1>ECS <span class="amp">·</span> VMC <span class="amp">·</span> CETI <span class="amp">·</span> Solaire</h1>
+    <div class="sub">Flashcards · Quiz · Tableau · Mémo — fusion de tes 2 fiches de révision (4 chapitres)</div>
+    <div class="src-note">Sources : Adrar Formation. <b>Lot ECS/VMC</b> — Ch.11 « L'eau chaude sanitaire » + Ch.12 « La VMC » + Ch.14 « La VMC dans le tertiaire ». <b>Lot CETI/Solaire (v.2022)</b> — Chap.14 « Chauffe-eau thermodynamique (CETI) » + Chap.15 « Solaire thermique / CESI » ; sources notées <b>CETI · p.X</b> et <b>CESI · p.X</b>. ⚠️ Les deux lots numérotent un « Ch.14 » différent (VMC tertiaire ≠ CETI) → à confirmer auprès du formateur. Le lot CETI/Solaire raisonne en <b>RT 2012</b> → vérifier la RE 2020. Aucune valeur inventée : tout provient des documents. Valeurs <b>EXEMPLE</b>/<b>FABRICANT</b> non généralisables (recouper notice/DTU).</div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" data-view="cards"><span class="ic">🃏</span> Flashcards</button>
+    <button class="tab" data-view="quiz"><span class="ic">🎯</span> Quiz</button>
+    <button class="tab" data-view="table"><span class="ic">📋</span> Tableau</button>
+    <button class="tab" data-view="memo"><span class="ic">⭐</span> Mémo</button>
+  </div>
+
+  <div class="filters" id="filters"></div>
+
+  <!-- FLASHCARDS -->
+  <section id="view-cards">
+    <div class="progress">
+      <span id="cardCount">1 / 1</span>
+      <div class="bar"><i id="cardBar"></i></div>
+      <span id="knownCount">su : 0</span>
+    </div>
+    <div class="scene">
+      <div class="card" id="card" onclick="flip()">
+        <div class="face front">
+          <div class="meta"><span class="dom" id="fDom">—</span><div class="badges" id="fBadges"></div></div>
+          <div class="q-label">Question</div>
+          <div class="q-txt" id="fQ">—</div>
+          <div class="flip-hint">tape pour retourner ↻</div>
+        </div>
+        <div class="face back">
+          <div class="meta"><span class="dom" id="bDom">—</span></div>
+          <div class="a-label">Réponse</div>
+          <div class="a-txt" id="fA">—</div>
+          <div class="src" id="fSrc">—</div>
+        </div>
+      </div>
+    </div>
+    <div class="nav">
+      <button class="review" onclick="mark(false)">↻ À revoir</button>
+      <button class="know" onclick="mark(true)">✓ Je sais</button>
+    </div>
+  </section>
+
+  <!-- QUIZ -->
+  <section id="view-quiz" class="hide">
+    <div id="quizPlay">
+      <div class="quiz-head">
+        <span id="qProgress">Question 1 / 1</span>
+        <span><span class="score" id="qScore">0 pts</span> · <span id="qStreak">série 0🔥</span></span>
+      </div>
+      <div class="quiz-card">
+        <div class="dom" id="qDom">—</div>
+        <div class="quiz-q" id="qQ">—</div>
+        <div class="opts" id="qOpts"></div>
+        <div class="expl" id="qExpl"></div>
+        <button class="qbtn" id="qNext" onclick="nextQuiz()" disabled>Valider une réponse</button>
+      </div>
+    </div>
+    <div id="quizResult" class="hide">
+      <div class="result">
+        <div class="lbl">Score final</div>
+        <div class="big" id="rBig">0%</div>
+        <div class="verdict" id="rVerdict">—</div>
+        <button class="qbtn" onclick="startQuiz()">↻ Rejouer le quiz</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- TABLE -->
+  <section id="view-table" class="hide">
+    <input class="search" id="search" placeholder="Rechercher (ex : 60°C, légionelle, COP, 30 mA, antigel, P0, ratio V/S, 45°, débit…)" oninput="renderTable()">
+    <div id="tableRows"></div>
+  </section>
+
+  <!-- MÉMO -->
+  <section id="view-memo" class="hide">
+    <div class="memo-block prio">
+      <h2><span class="tag">1</span> À mémoriser en priorité</h2>
+      <ul>
+        <li>ECS stockée à <b>60°C</b> · puisage <b>50°C</b> (toilette) / <b>60°C</b> (autres pièces) · soupape groupe de sécurité <b>7 bar</b>.</li>
+        <li>Chaleur massique eau <b>1,16 Wh/kg.°C</b> · chaleur volumique air <b>0,34 Wh/m³.K</b>.</li>
+        <li>Formules : eau <b>P = qv × 1,16 × ΔT</b> (l/h → W) · air <b>P = qv × 0,34 × ΔT</b> (m³/h → W).</li>
+        <li>Besoin ECS <b>50 L/pers/jour</b> à 60°C · chauffe-eau électrique <b>2000–3000 W</b>.</li>
+        <li>VMC double flux récupère <b>92%</b> des calories · grille d'entrée d'air <b>15 / 22 / 30 m³/h</b>.</li>
+        <li>Filtres VMC double flux changés <b>tous les 6 mois</b>.</li>
+        <li style="border-top:1px solid var(--line);margin-top:6px;padding-top:10px"><span class="tag">CETI · Solaire</span></li>
+        <li><b>CETI :</b> différentiel <b>30 mA</b> · local <b>≥ 20-30 m³</b> · bruit seuil <b>50 dB</b> · <b>NF C 15-100</b> · pas de HP/HC.</li>
+        <li><b>Débit solaire :</b> <b>40-70 L/h.m²</b> (high-flow), vitesse <b>≤ 1 m/s</b> ; soupape primaire <b>~6 bar</b>.</li>
+        <li><b>Vase solaire :</b> <b>P0 = H/10 + 1,5</b> ; <b>P1 = P0 + 0,5</b>.</li>
+        <li><b>Fluide :</b> MPG alimentaire, protection <b>≥ −25°C</b> ; isolant <b>≥ 19 mm</b> anti-UV clair dehors ; primaire <b>cuivre/inox</b> seulement, joints <b>graphite</b>.</li>
+        <li><b>Dimensionnement :</b> besoin réf. ADEME <b>50 L/pers à 50°C</b> ; ballon interne <b>×1,5</b> / externe <b>×1</b> ; ratio V/S <b>45-55-65-75</b> ; capteurs <b>≥ 1 m</b> d'un conduit de fumée (NF EN 12975).</li>
+      </ul>
+    </div>
+
+    <div class="memo-block warn">
+      <h2><span class="tag">2</span> Points de vigilance chantier</h2>
+      <ul>
+        <li>Hotte de cuisine : <b>jamais</b> raccordée au réseau VMC (risque d'incendie sur conduit PVC, encrassement).</li>
+        <li>Groupe d'extraction : <b>suspendu</b> dans les combles, au-dessus d'une pièce de service — jamais posé au sol ni fixé au mur.</li>
+        <li>Conduits dans les combles au-dessus de l'isolant : <b>gaines isolées</b>, éviter coudes/siphons (condensation, pertes de charge).</li>
+        <li>Chauffe-eau plat : vérifier qu'il n'est <b>pas</b> sur un contacteur HP/HC, sinon manque d'eau.</li>
+        <li>Cheminée / poêle à bois : prévoir une <b>amenée d'air comburant dédiée</b>.</li>
+        <li>Vase d'expansion <b>sanitaire = blanc</b> ≠ vase <b>chauffage = rouge</b>.</li>
+        <li>Eau froide du réseau de distribution : ne pas dépasser <b>20°C</b>, calorifuger EC et EF séparément.</li>
+        <li style="border-top:1px solid var(--line);margin-top:6px;padding-top:10px"><span class="tag">CETI · Solaire</span></li>
+        <li><b>Remplissage solaire :</b> jamais par temps ensoleillé (ébullition), jamais s'il y a risque de gel ; par la vanne de vidange (point bas), matin/soir.</li>
+        <li><b>CETI :</b> jamais sur prise → boîte de sortie de câble ; remplir le ballon <b>avant</b> de remettre le courant.</li>
+        <li><b>Bruit CETI &gt; 50 dB</b> interdit près des chambres → split ou éloignement.</li>
+        <li><b>Corrosion :</b> ne jamais mélanger <b>cuivre + acier galvanisé</b> (électrolyse).</li>
+        <li><b>UV :</b> isolant extérieur non protégé = HS en moins de 2 ans.</li>
+        <li><b>Surdimensionnement solaire :</b> coûteux pour peu de gain → viser la productivité, pas la couverture max.</li>
+        <li><b>Mise en service élec CESI :</b> DDR 30 mA, mise à la terre des tuyauteries, terre bâtiment ≤ 100 Ω (AGCP 500 mA) — à recouper NF C 15-100.</li>
+      </ul>
+    </div>
+
+    <div class="memo-block confuse">
+      <h2><span class="tag">3</span> À ne pas confondre</h2>
+      <ul>
+        <li><b>1,16</b> (eau) vs <b>0,34</b> (air) · même débit en m³/h → eau en <b>kW</b>, air en <b>W</b>.</li>
+        <li><b>50°C</b> puisage toilette · <b>55°C</b> sortie stockage ≥ 400 L · <b>60°C</b> température de stockage.</li>
+        <li>Hygro <b>type A</b> (seules les bouches s'ajustent) vs <b>type B</b> (entrées d'air aussi hygroréglables).</li>
+        <li>Résistance <b>stéatite</b> (fourreau, eau calcaire) vs <b>blindée</b> (contact direct, détartrage ~2 ans).</li>
+        <li>Anode <b>magnésium</b> (sacrificielle) vs anode <b>titane / ACI</b> (courant imposé, inusable).</li>
+        <li>ECS <b>instantané</b> / <b>semi-instantané (micro-accumulation)</b> / <b>accumulation</b> : 3 principes distincts.</li>
+        <li style="border-top:1px solid var(--line);margin-top:6px;padding-top:10px"><span class="tag">CETI · Solaire</span></li>
+        <li><b>50 L</b> (besoin ECS réf. ADEME, 50°C) ≠ <b>33 L</b> (conso de calcul, 50°C) ≠ <b>56 L</b> (COSTIC, 40°C).</li>
+        <li>Ballon <b>interne ×1,5</b> vs <b>externe ×1</b> le besoin.</li>
+        <li><b>DD 5-10 K</b> (démarrage) vs <b>DA 2-4 K</b> (arrêt) — formule DA = Tc−Tin+1, DD = DA+4.</li>
+        <li><b>Soupape primaire 6 bar</b> (circuit capteurs) vs <b>soupape sanitaire T°/P 90-95°C</b> (sortie ballon) vs <b>groupe sécurité ECS 7 bar</b>.</li>
+        <li><b>k = 3</b> (capteur plan) vs <b>k = 1</b> (tubes sous vide).</li>
+        <li><b>High-flow 40-70</b> vs <b>low-flow 15-30</b> L/h.m².</li>
+        <li>Inclinaison <b>45°</b> (ECS) vs <b>~60°</b> (chauffage SSC).</li>
+        <li>Hauteur coffre <b>20 cm</b> (démontable) vs <b>40/80 cm</b> (non démontable).</li>
+      </ul>
+    </div>
+
+    <div class="memo-block verif">
+      <h2><span class="tag">4</span> À vérifier (formateur · DTU · norme · notice)</h2>
+      <ul>
+        <li>Températures ECS 50/60°C : <b>arrêté du 30 nov. 2005</b> — confirmer la version en vigueur.</li>
+        <li>Débits VMC logement : <b>arrêté du 24 mars 1982</b> (+ modif. 28 oct. 1983) — recouper les tableaux.</li>
+        <li>« RT2020 » cité dans le cours : vérifier l'appellation exacte (<b>RE2020</b>) et son périmètre réel.</li>
+        <li>QAI en ERP depuis 2023 : <b>Art. L221-1 et suivants du Code de l'environnement</b> + décrets.</li>
+        <li>Rendements gaz (<b>≥ 98% PCI / EN 89</b>, EN 13203) : confirmer sur la notice fabricant de l'appareil.</li>
+        <li>Diamètres tubes par appareil : recouper avec le <b>DTU plomberie</b> et la fiche produit.</li>
+        <li style="border-top:1px solid var(--line);margin-top:6px;padding-top:10px"><span class="tag">CETI · Solaire</span></li>
+        <li><b>Numérotation « Ch.14 » :</b> VMC tertiaire (lot ECS/VMC) ≠ CETI (lot CETI/Solaire) — clarifier avec le formateur.</li>
+        <li><b>RT 2012 → RE 2020 :</b> le lot CETI/Solaire est en RT 2012 — quelles obligations neuf actuelles ?</li>
+        <li><b>T° anti-légionnelle CETI :</b> non précisée dans le document — valeur cible et fréquence ?</li>
+        <li><b>Profondeur tranchée ~0,50 m</b> lue sur schéma → confirmer DTU réseaux enterrés.</li>
+        <li><b>Aides &amp; éligibilité :</b> doc cite crédit d'impôt / RGE 2022 → actualiser (MaPrimeRénov', CEE).</li>
+        <li><b>Prix exemples (1200 € / 6000 €), Ø tubes &amp; vase « par exemple » :</b> suivre la notice du kit installé pour tout devis.</li>
+        <li><b>Terre 100 Ω / AGCP 500 mA :</b> confirmer avec la NF C 15-100 en vigueur.</li>
+      </ul>
+    </div>
+
+    <div class="memo-block">
+      <h2><span class="tag">5</span> Flashcards de révision</h2>
+      <ul>
+        <li>Les <b>~155 questions/réponses</b> (ECS, VMC, tertiaire, CETI, solaire) sont dans l'onglet <b>🃏 Flashcards</b> (filtrables par domaine), avec auto-test dans l'onglet <b>🎯 Quiz</b> et vue complète dans l'onglet <b>📋 Tableau</b> (unité, condition, chantier, mnémo).</li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="footer">
+    GAUTIER ÉNERGIES · mémo de révision interactif<br>
+    ECS · VMC · VMC tertiaire (Ch.11/12/14) + CETI · Solaire (Ch.14/15, v.2022) — Adrar Formation.
+  </div>
+</div>
+
+<script>
+/* ---------- DONNÉES (uniquement issues des 3 documents) ---------- */
+const DOMS = {
+  temp:{label:"Températures & légionelle",col:"--d-secu"},
+  press:{label:"Pression & sécurité ECS",col:"--d-press"},
+  ecsdim:{label:"Capacités & dimensionnement",col:"--d-debit"},
+  diam:{label:"Diamètres de tubes",col:"--d-haut"},
+  ecsmat:{label:"Matériel ECS",col:"--d-pvc"},
+  physique:{label:"Formules & physique",col:"--d-pmr"},
+  vmctypes:{label:"Types de VMC",col:"--d-eau"},
+  vmcdebit:{label:"Débits & réglementation VMC",col:"--d-debit"},
+  vmcpose:{label:"Pose & conduits VMC",col:"--d-evac"},
+  vmcentr:{label:"Entretien VMC",col:"--d-pvc"},
+  tertiaire:{label:"VMC tertiaire / QAI",col:"--d-press"},
+  ceti:{label:"CETI (thermodynamique)",col:"--d-debit"},
+  solgen:{label:"Solaire · capteurs & perfs",col:"--d-haut"},
+  solcirc:{label:"Solaire · circuit & sécurité",col:"--d-secu"},
+  solreg:{label:"Solaire · régulation",col:"--d-pmr"},
+  soldim:{label:"Solaire · dimensionnement & pose",col:"--d-evac"}
+};
+
+const CARDS = [
+  // ─── TEMPÉRATURES & LÉGIONELLE (Ch.11) ───
+  {d:"temp",q:"Température max de l'ECS aux points de puisage ?",a:"<b>50 °C</b> dans les pièces de toilette · <b>60 °C</b> dans les autres pièces d'habitation. Arrêté du 30 nov. 2005 (à recouper).",t:"O",i:"crit",s:"Ch.11 p.5 / p.8"},
+  {d:"temp",q:"Température de stockage de l'ECS pour éviter la prolifération bactérienne ?",a:"<b>60 °C</b>.",t:"O",i:"crit",s:"Ch.11 p.6"},
+  {d:"temp",q:"Température de destruction des légionelles ?",a:"<b>60 °C</b> (destruction) · arrêt de croissance dès <b>50 °C</b> · optimum de croissance <b>37–38 °C</b> · survie <b>10 °C</b>.",t:"C",i:"eleve",s:"Ch.11 p.5"},
+  {d:"temp",q:"Temps de brûlure selon la température de l'eau ?",a:"<b>50 °C → 8 min</b> · <b>60 °C → 7 s</b> · <b>70 °C → 1 s</b>.",t:"C",i:"crit",s:"Ch.11 p.5"},
+  {d:"temp",q:"Cuisines / buanderies en ERP : température max ECS possible ?",a:"Jusqu'à <b>90 °C</b> en certains points, avec <b>signalisation particulière</b> obligatoire.",t:"O",i:"eleve",s:"Ch.11 p.8"},
+  {d:"temp",q:"Volume entre la distribution et le puisage le plus éloigné > 3 L : quelle règle ?",a:"Eau <b>≥ 50 °C</b> en tout point du système, sauf les <b>tubes finaux d'alimentation (≤ 3 L)</b>.",t:"O",i:"eleve",s:"Ch.11 p.6"},
+  {d:"temp",q:"Volume total de stockage ≥ 400 L : quelle règle anti-légionelle ?",a:"<b>≥ 55 °C</b> en permanence en sortie, OU porté 1×/24 h à <b>70 °C ≥ 2 min</b> / <b>65 °C ≥ 4 min</b> / <b>60 °C ≥ 60 min</b>.",t:"O",i:"eleve",s:"Ch.11 p.6"},
+  {d:"temp",q:"Température mini de l'ECS dans un réseau bouclé ?",a:"<b>≥ 50 °C</b> en tout point, y compris le retour de boucle.",t:"O",i:"eleve",s:"Ch.11 p.7"},
+  {d:"temp",q:"Température max de l'eau froide dans le réseau de distribution ?",a:"<b>≤ 20 °C</b> · canalisations EF et EC <b>calorifugées séparément</b>.",t:"R",i:"eleve",s:"Ch.11 p.7"},
+  {d:"temp",q:"Nombre de cas de légionellose déclarés par an en France ?",a:"<b>1 200 à 1 500 cas/an</b>.",t:"C",i:"moy",s:"Ch.11 p.5"},
+
+  // ─── PRESSION & SÉCURITÉ ECS (Ch.11) ───
+  {d:"press",q:"Pression de réglage de la soupape du groupe de sécurité ?",a:"<b>7 bar</b> (protège la cuve contre la surpression liée à la dilatation de l'eau).",t:"C",i:"crit",s:"Ch.11 p.17"},
+  {d:"press",q:"Fonctions du groupe de sécurité d'un ballon ?",a:"Soupape de sécurité (7 bar) · robinet d'arrêt (isolement) · clapet anti-retour · vidange. Posé sur l'<b>entrée d'eau froide</b>.",t:"O",i:"eleve",s:"Ch.11 p.17 / p.28"},
+  {d:"press",q:"Vase d'expansion sanitaire : couleur et emplacement ?",a:"<b>Blanc</b>, posé <b>entre le groupe de sécurité et l'entrée EF</b> du ballon. À NE PAS confondre avec le vase de chauffage (<b>rouge</b>).",t:"R",i:"eleve",s:"Ch.11 p.18"},
+  {d:"press",q:"Raccord diélectrique : où et pourquoi ?",a:"Sur l'EC et l'EF du chauffe-eau (protection contre la corrosion galvanique). Si un seul : sur l'<b>eau chaude</b>.",t:"R",i:"moy",s:"Ch.11 p.16"},
+  {d:"press",q:"Une chaudière instantanée a-t-elle un groupe de sécurité sur l'ECS ?",a:"<b>Non</b> — pas de groupe de sécurité sur le circuit d'eau chaude sanitaire.",t:"C",i:"moy",s:"Ch.11 p.37"},
+  {d:"press",q:"Où la chaudière mixte instantanée est-elle interdite ?",a:"Dans les <b>salles de bains, chambres à coucher et séjours</b>.",t:"O",i:"eleve",s:"Ch.11 p.37"},
+
+  // ─── CAPACITÉS & DIMENSIONNEMENT (Ch.11) ───
+  {d:"ecsdim",q:"Besoin journalier en ECS par personne ?",a:"<b>50 L/pers/jour</b> pour une eau à 60 °C (cumulus : 30 à 50 L/jour/pers, base ΔT 50°).",t:"C",i:"eleve",s:"Ch.11 p.9 / p.13"},
+  {d:"ecsdim",q:"Capacité de ballon vertical conseillée selon le logement (HC) ?",a:"<b>F1 100 L · F2 150 L · F3 150–200 L · F4 250–300 L · F5+ 300 ou 2×200 L</b>.",t:"C",i:"moy",s:"Ch.11 p.14"},
+  {d:"ecsdim",q:"Capacité conseillée selon le nombre d'occupants ?",a:"1 adulte <b>50 L</b> · 2 adultes <b>100 L</b> · 2 ad + 2 enf <b>200 L</b> · 2 ad + 3 enf <b>250 L</b>.",t:"Ex",i:"moy",s:"Ch.11 p.4"},
+  {d:"ecsdim",q:"Plage de capacité d'un chauffe-eau électrique vertical ?",a:"<b>50 à 300 litres</b> (horizontal : 50 à 200 L).",t:"C",i:"moy",s:"Ch.11 p.10 / p.11"},
+  {d:"ecsdim",q:"Différence de contenance accumulation horizontale vs verticale ?",a:"L'horizontal doit avoir <b>+ 50 L</b> par rapport au vertical.",t:"C",i:"moy",s:"Ch.11 p.14"},
+  {d:"ecsdim",q:"Puissance d'un chauffe-eau électrique à accumulation ?",a:"<b>2000 à 3000 W</b> selon la capacité.",t:"C",i:"moy",s:"Ch.11 p.13"},
+  {d:"ecsdim",q:"Gamme de puissance d'un chauffe-eau électrique instantané ?",a:"<b>2 à 30 kW</b> (alimente <b>un seul point d'eau</b>).",t:"C",i:"eleve",s:"Ch.11 p.34"},
+  {d:"ecsdim",q:"Débit d'un chauffe-eau électrique instantané de 7,3 kW ?",a:"<b>2,6 l/min à 55 °C</b> ou <b>4 l/min à 40 °C</b>. Attention au faible débit (eau tiède).",t:"F",i:"moy",s:"Ch.11 p.34"},
+  {d:"ecsdim",q:"Débit ECS moyen d'une chaudière instantanée ?",a:"<b>11 à 14 l/min</b> en moyenne.",t:"C",i:"moy",s:"Ch.11 p.37"},
+  {d:"ecsdim",q:"Norme et conditions de mesure du débit ECS d'une chaudière ?",a:"<b>EN 13203</b> : <b>ΔT = 30 °C</b>, entrée EF = 10 °C, sortie EC = 40 °C. Vérifier que la valeur fabricant est bien donnée pour ΔT 30°.",t:"C",i:"eleve",s:"Ch.11 p.39"},
+  {d:"ecsdim",q:"Volume du ballon en micro-accumulation vs semi-accumulation ?",a:"Micro-accumulation : mini-ballon <b>~4 L</b> calorifugé · semi-accumulation : <b>20 à 100 L</b>.",t:"C",i:"moy",s:"Ch.11 p.39 / p.42"},
+  {d:"ecsdim",q:"Performance d'un chauffe-eau thermodynamique (exemple) ?",a:"Modèle 100 L : <b>170 L à 40 °C en 3h20</b> · modèle 50 L : 72 L à 40 °C en 1h30. Poids plein ~<b>180 kg</b>.",t:"F",i:"moy",s:"Ch.11 p.13"},
+
+  // ─── DIAMÈTRES DE TUBES (Ch.11 + Ch.12) ───
+  {d:"diam",q:"Ø d'alimentation d'une baignoire ?",a:"Cuivre <b>16×1</b> · PER <b>20×1,9</b> · multicouche <b>20×2</b>.",t:"C",i:"eleve",s:"Ch.11 p.8"},
+  {d:"diam",q:"Ø d'alimentation d'une douche ?",a:"Cuivre <b>14×1</b> · PER <b>16×1,5</b> · multicouche <b>16×2</b>.",t:"C",i:"moy",s:"Ch.11 p.8"},
+  {d:"diam",q:"Ø d'alimentation d'un évier ?",a:"Cuivre <b>14×1</b> · PER <b>16×1,5</b> · multicouche <b>16×2</b>.",t:"C",i:"moy",s:"Ch.11 p.8"},
+  {d:"diam",q:"Ø d'alimentation d'un lavabo / lave-mains ?",a:"Cuivre <b>12×1</b> · PER <b>12×1,1</b> · multicouche <b>14×2</b>.",t:"C",i:"moy",s:"Ch.11 p.8"},
+  {d:"diam",q:"Ø d'alimentation d'un chauffe-eau ?",a:"Cuivre <b>16×1</b> · PER <b>20×1,9</b> · multicouche <b>18×2</b>.",t:"C",i:"eleve",s:"Ch.11 p.8"},
+  {d:"diam",q:"Ø d'alimentation d'une chasse d'eau / lave-linge / lave-vaisselle ?",a:"Cuivre <b>12×1</b> · PER <b>12×1,1</b> · multicouche <b>14×2</b>.",t:"C",i:"moy",s:"Ch.11 p.8"},
+  {d:"diam",q:"Contenance en eau par mètre de tube cuivre ?",a:"10/12 <b>0,079</b> · 12/14 <b>0,113</b> · 14/16 <b>0,154</b> · 16/18 <b>0,201</b> · 20/22 <b>0,314</b> (l/m).",t:"C",i:"moy",s:"Ch.11 p.8"},
+  {d:"diam",q:"Ø des gaines de raccordement de bouches VMC ?",a:"<b>80 ou 125 mm</b> (manchettes de raccordement).",t:"C",i:"eleve",s:"Ch.12 p.18"},
+  {d:"diam",q:"Ø des gaines VMC selon la pièce ?",a:"WC / sanitaires <b>PVC Ø80</b> · cuisine <b>Ø125</b> · rejet en toiture <b>Ø160</b>.",t:"C",i:"eleve",s:"Ch.12 p.18"},
+
+  // ─── MATÉRIEL ECS (Ch.11) ───
+  {d:"ecsmat",q:"Deux types de résistance de chauffe-eau ?",a:"<b>Blindée</b> (en contact direct avec l'eau) et <b>stéatite</b> (placée dans un fourreau).",t:"C",i:"eleve",s:"Ch.11 p.19"},
+  {d:"ecsmat",q:"Quelle résistance privilégier en région calcaire ?",a:"La <b>stéatite</b> : protégée du tartre, changement sans vidange, consomme moins.",t:"R",i:"eleve",s:"Ch.11 p.19-20"},
+  {d:"ecsmat",q:"Périodicité de détartrage d'un chauffe-eau blindé ?",a:"<b>Tous les 2 ans</b> environ (conseillé si eau peu calcaire ou adoucisseur).",t:"R",i:"moy",s:"Ch.11 p.20-21"},
+  {d:"ecsmat",q:"Rôle de l'anode magnésium ?",a:"Anode <b>sacrificielle</b> : elle se corrode à la place de la cuve.",t:"C",i:"eleve",s:"Ch.11 p.22"},
+  {d:"ecsmat",q:"Qu'est-ce qu'une anode titane ?",a:"Anode <b>ACI</b> (Anode à Courant Imposé), inusable, alimentée par un générateur basse tension.",t:"C",i:"moy",s:"Ch.11 p.23"},
+  {d:"ecsmat",q:"Surconsommation électrique due au calcaire sur la résistance ?",a:"1 mm <b>+10 %</b> · 3 mm <b>+20 %</b> · 6 mm <b>+35 %</b> · 9 mm <b>+45 %</b> · 12 mm <b>+50 %</b>.",t:"C",i:"eleve",s:"Ch.11 p.22"},
+  {d:"ecsmat",q:"Trois formes de thermostat de chauffe-eau ?",a:"<b>À canne</b> · <b>capillaire</b> · <b>électronique</b>.",t:"C",i:"moy",s:"Ch.11 p.23-24"},
+  {d:"ecsmat",q:"Contacteur jour/nuit (HP/HC) : pour quel appareil ?",a:"<b>Uniquement</b> le chauffe-eau électrique à ballon. Pas pour le chauffe-eau gaz à accumulation ni l'électrique instantané. Commande EDF.",t:"C",i:"eleve",s:"Ch.11 p.14"},
+  {d:"ecsmat",q:"Matériau de tube aux propriétés antibactériennes ?",a:"Le <b>cuivre</b> (réduit le biofilm). L'<b>acier galvanisé</b> n'est pas recommandé (corrosion, max 60 °C).",t:"C",i:"moy",s:"Ch.11 p.6"},
+  {d:"ecsmat",q:"Accumulateur gaz à condensation : rendement et norme ?",a:"Rendement PCI <b>≥ 98 %</b> selon <b>EN 89</b>. Haut rendement : ~91 % ventouse, 85 % atmosphérique.",t:"C",i:"eleve",s:"Ch.11 p.25-26"},
+  {d:"ecsmat",q:"Énergie ECS la plus économique / la plus chère à l'usage ?",a:"<b>Gaz naturel</b> = le plus économique · <b>électricité</b> = le plus cher à l'usage.",t:"C",i:"moy",s:"Ch.11 p.3"},
+  {d:"ecsmat",q:"Fréquence d'entretien d'un accumulateur gaz ?",a:"<b>Entretien annuel</b> (comme une chaudière gaz).",t:"O",i:"moy",s:"Ch.11 p.28"},
+
+  // ─── FORMULES & PHYSIQUE (Ch.11 + Ch.12) ───
+  {d:"physique",q:"Chaleur massique de l'eau ?",a:"<b>Ceau = 1,16 Wh/kg.°C</b> (énergie pour élever 1 kg d'eau de 1 °C en 1 h).",t:"C",i:"crit",s:"Ch.11 p.31"},
+  {d:"physique",q:"Formule de puissance pour l'eau ?",a:"<b>P = qv × 1,16 × ΔT</b> · P en W · qv en l/h · ΔT en K.",t:"C",i:"crit",s:"Ch.11 p.44 / Ch.12 p.34"},
+  {d:"physique",q:"Chaleur volumique de l'air ?",a:"<b>0,34 Wh/(m³.K)</b> (valeur de référence à 20 °C et 50 % HR).",t:"C",i:"crit",s:"Ch.12 p.32"},
+  {d:"physique",q:"Formule de puissance pour l'air ?",a:"<b>P = qv × 0,34 × ΔT</b> · P en W · qv en m³/h · ΔT en K.",t:"C",i:"crit",s:"Ch.12 p.32"},
+  {d:"physique",q:"Piège d'unités air / eau avec un débit en m³/h ?",a:"Débit en m³/h : l'air donne des <b>W</b>, l'eau des <b>kW</b>. Ne pas confondre <b>0,34</b> (air) et <b>1,16</b> (eau).",t:"C",i:"eleve",s:"Ch.12 p.32 / p.34"},
+
+  // ─── TYPES DE VMC (Ch.12) ───
+  {d:"vmctypes",q:"Que signifie VMC ?",a:"<b>Ventilation Mécanique Contrôlée</b>.",t:"C",i:"moy",s:"Ch.12 p.3"},
+  {d:"vmctypes",q:"Différence simple flux / double flux ?",a:"Double flux : <b>échangeur thermique</b> qui récupère <b>92 %</b> des calories de l'air extrait. Simple flux : l'air neuf entre directement (refroidit l'intérieur en hiver).",t:"C",i:"eleve",s:"Ch.12 p.8"},
+  {d:"vmctypes",q:"Hygroréglable type A vs type B ?",a:"<b>Type A</b> : seules les bouches s'ajustent (entrées d'air constantes). <b>Type B</b> : entrées d'air AUSSI hygroréglables (plus performant).",t:"C",i:"eleve",s:"Ch.12 p.6"},
+  {d:"vmctypes",q:"Débit d'une bouche hygroréglable de type B ?",a:"<b>5 / 45 m³/h</b> selon le taux d'humidité de la pièce.",t:"F",i:"moy",s:"Ch.12 p.6"},
+  {d:"vmctypes",q:"La VMC par insufflation est-elle admise en construction neuve ?",a:"<b>Non</b> : hors cadre RT2012 et RT2020.",t:"O",i:"eleve",s:"Ch.12 p.13"},
+  {d:"vmctypes",q:"Qu'est-ce qu'une VMR ?",a:"<b>Ventilation Mécanique Répartie</b> : aérateurs autonomes, pièce par pièce, non reliés entre eux (faible conso).",t:"C",i:"moy",s:"Ch.12 p.14"},
+  {d:"vmctypes",q:"Rôle de sécurité d'une VMC gaz collective ?",a:"Des <b>interrupteurs coupent la chaudière gaz</b> si la VMC dysfonctionne (anti-fuite de gaz / anti-CO).",t:"O",i:"eleve",s:"Ch.12 p.15"},
+  {d:"vmctypes",q:"Que préconise la RT2020 en logement ?",a:"La <b>simple flux hygroréglable</b> et la <b>VMC double flux</b> (à recouper : RE2020).",t:"R",i:"moy",s:"Ch.12 p.3"},
+  {d:"vmctypes",q:"Intérêt des filtres d'une VMC double flux ?",a:"Protègent l'échangeur de l'encrassement et freinent poussières/pollen → air plus sain.",t:"C",i:"moy",s:"Ch.12 p.11"},
+
+  // ─── DÉBITS & RÉGLEMENTATION VMC (Ch.12) ───
+  {d:"vmcdebit",q:"Texte fixant les débits d'air en logement neuf ?",a:"<b>Arrêté du 24 mars 1982</b> (art. 3) · débits réduits par l'art. 4 modifié (arrêté du 28 oct. 1983).",t:"O",i:"eleve",s:"Ch.12 p.3 / p.29"},
+  {d:"vmcdebit",q:"Débit d'une grille d'entrée d'air autoréglable ?",a:"<b>15, 22 ou 30 m³/h</b> selon le modèle. Trous dans les menuiseries par un professionnel.",t:"C",i:"eleve",s:"Ch.12 p.4 / p.16"},
+  {d:"vmcdebit",q:"Hygro type A — exemple maison 4 pièces principales ?",a:"Débit <b>mini 20 m³/h</b> · <b>nominal 180 m³/h</b> (120 cuisine + 30 SdB + 30 WC).",t:"Ex",i:"eleve",s:"Ch.12 p.29"},
+  {d:"vmcdebit",q:"Débit cuisine (hygro A, 4 pièces) ?",a:"<b>45 / 120 m³/h</b> (mini / nominal).",t:"C",i:"moy",s:"Ch.12 p.29"},
+  {d:"vmcdebit",q:"Débit d'un WC unique (hygro A) ?",a:"<b>15 m³/h</b> jusqu'à 3 pièces, puis <b>30 m³/h</b> à partir de 4 pièces principales.",t:"C",i:"moy",s:"Ch.12 p.29"},
+  {d:"vmcdebit",q:"Niveau sonore d'un ventilateur de VMC double flux ?",a:"~<b>40 dB</b> chacun (vérifier le confort acoustique + isolation des gaines).",t:"C",i:"moy",s:"Ch.12 p.9"},
+  {d:"vmcdebit",q:"Encombrement d'une VMC double flux ?",a:"Largeur <b>60–80 cm</b>, hauteur ~<b>1 m</b>. À placer dans le volume chauffé.",t:"F",i:"moy",s:"Ch.12 p.9"},
+  {d:"vmcdebit",q:"Deux principes de la réglementation aération (France) ?",a:"Aération <b>générale et permanente</b> · <b>balayage</b> : entrées (pièces principales) → sorties (pièces de service).",t:"O",i:"eleve",s:"Ch.12 p.28"},
+
+  // ─── POSE & CONDUITS VMC (Ch.12) ───
+  {d:"vmcpose",q:"Où placer le groupe d'extraction ?",a:"Dans les <b>combles</b>, au-dessus d'une <b>pièce de service</b> (jamais au-dessus d'une pièce principale).",t:"R",i:"eleve",s:"Ch.12 p.23"},
+  {d:"vmcpose",q:"Comment fixer le caisson d'extraction ?",a:"<b>Suspendu</b> (anti-vibrations), piquages <b>vers le bas</b>. Jamais posé au sol ni fixé au mur.",t:"O",i:"eleve",s:"Ch.12 p.23"},
+  {d:"vmcpose",q:"Peut-on raccorder une hotte de cuisine sur la VMC ?",a:"<b>Non, jamais</b> : risque d'incendie (conduit PVC) + encrassement par les graisses.",t:"O",i:"crit",s:"Ch.12 p.22"},
+  {d:"vmcpose",q:"Conduits passant dans les combles au-dessus de l'isolant ?",a:"Utiliser des <b>gaines isolées</b> (condensation). Éviter coudes/siphons.",t:"O",i:"eleve",s:"Ch.12 p.19"},
+  {d:"vmcpose",q:"Quand préférer le PVC rigide aux gaines souples ?",a:"Sur les <b>grandes longueurs</b>. Les gaines souples doivent être étirées au maximum.",t:"R",i:"moy",s:"Ch.12 p.19"},
+  {d:"vmcpose",q:"Conditionnement des gaines souples grises ?",a:"Vendues par <b>longueur de 10 m</b>.",t:"C",i:"moy",s:"Ch.12 p.19"},
+  {d:"vmcpose",q:"Cheminée / poêle à bois et VMC ?",a:"Prévoir une <b>amenée d'air comburant spécifique</b>.",t:"O",i:"eleve",s:"Ch.12 p.26"},
+  {d:"vmcpose",q:"Conséquences de coudes / pertes de charge excessifs ?",a:"Baisse du débit d'aspiration → <b>QAI dégradée</b> + <b>surconsommation</b> du moteur.",t:"C",i:"moy",s:"Ch.12 p.20"},
+
+  // ─── ENTRETIEN VMC (Ch.12) ───
+  {d:"vmcentr",q:"Fréquence de changement des filtres d'une VMC double flux ?",a:"<b>Tous les 6 mois</b> (air insufflé et air extrait).",t:"R",i:"eleve",s:"Ch.12 p.10"},
+  {d:"vmcentr",q:"Fréquence de nettoyage des conduits (double flux) ?",a:"<b>Tous les 10 ans</b>.",t:"R",i:"moy",s:"Ch.12 p.10"},
+  {d:"vmcentr",q:"Fréquence de nettoyage des grilles d'entrée d'air ?",a:"<b>4 fois/an</b> (tous les 3 mois).",t:"R",i:"moy",s:"Ch.12 p.26"},
+  {d:"vmcentr",q:"Fréquence de nettoyage des bouches d'extraction ?",a:"<b>2 fois/an</b>.",t:"R",i:"moy",s:"Ch.12 p.26"},
+  {d:"vmcentr",q:"Fréquence de ramonage des conduits rigides ?",a:"<b>1 fois tous les 5 ans</b>.",t:"R",i:"moy",s:"Ch.12 p.26"},
+  {d:"vmcentr",q:"Fréquence de nettoyage des ventilateurs (insufflation/extraction) ?",a:"<b>1 fois/an</b> chacun · conduits souples 1 fois/an.",t:"R",i:"moy",s:"Ch.12 p.26"},
+
+  // ─── VMC TERTIAIRE / QAI (Ch.14) ───
+  {d:"tertiaire",q:"La VMC est-elle obligatoire dans le tertiaire ?",a:"<b>Pas d'obligation stricte</b> d'avoir une VMC ; mais si une VMC est en place, les <b>débits minimums</b> réglementaires s'appliquent.",t:"O",i:"eleve",s:"Ch.14 p.4"},
+  {d:"tertiaire",q:"Dispositif QAI : depuis quand et pour quels établissements ?",a:"Depuis le <b>1er janvier 2023</b> dans certains ERP (écoles, collèges, lycées, centres de loisirs/formation). Art. L221-1 et suiv. du Code de l'environnement.",t:"O",i:"eleve",s:"Ch.14 p.4"},
+  {d:"tertiaire",q:"Textes fixant le renouvellement d'air en tertiaire ?",a:"<b>RSDT</b> (Règlement Sanitaire Départemental Type) pour les ERP · <b>Code du Travail</b> pour les ERT.",t:"C",i:"eleve",s:"Ch.14 p.5"},
+  {d:"tertiaire",q:"Deux familles de débits réglementaires en tertiaire ?",a:"<b>Air extrait (m³/h)</b> dans les locaux à pollution spécifique (WC, SdB, cuisine) · <b>air neuf par occupant (m³/h/pers)</b> dans les locaux à pollution non spécifique (bureaux, classes, salles de réunion…).",t:"C",i:"eleve",s:"Ch.14 p.5"},
+  {d:"tertiaire",q:"Que préconise la RT2020 en tertiaire ?",a:"La <b>VMC double flux</b> (à recouper : RE2020).",t:"R",i:"moy",s:"Ch.14 p.5"},
+  {d:"tertiaire",q:"Matériau de conduit le plus répandu en tertiaire ?",a:"L'<b>acier galvanisé (Galva)</b>, peu coûteux. Aluminium en VMC-gaz, inox en salles propres / cuisines / locaux humides.",t:"C",i:"eleve",s:"Ch.14 p.11"},
+  {d:"tertiaire",q:"Formes de conduits VMC tertiaire ?",a:"<b>Circulaires, rectangulaires, oblongs</b>. Les rectangulaires servent pour gagner de la place (éviter cheminements complexes).",t:"C",i:"moy",s:"Ch.14 p.12"},
+  {d:"tertiaire",q:"Principaux polluants de l'air intérieur ?",a:"<b>CO₂</b> (occupants) · <b>humidité</b> · <b>COV</b> (peintures, colles, mobilier, ménage) · <b>particules fines PM2.5 / PM10</b> (air extérieur, cuisson).",t:"C",i:"moy",s:"Ch.14 p.6"},
+  {d:"tertiaire",q:"Décès prématurés/an dus aux polluants intérieurs (France) ?",a:"<b>20 000/an</b> (OQAI 2014). 28 % des AVC et 17 % des cancers liés à l'air pollué (OMS). À recouper.",t:"C",i:"moy",s:"Ch.14 p.5"},
+
+  // ─── CETI · CHAUFFE-EAU THERMODYNAMIQUE (Chap.14 lot CETI/Solaire) ───
+  {d:"ceti",q:"CETI : protection électrique obligatoire ?",a:"<b>Disjoncteur différentiel 30 mA</b> + raccordement à la terre + alimentation spécifique.",u:"mA",cd:"Quelle que soit la configuration",ch:"Boîte de sortie de câble, jamais sur prise (p.12).",m:"« 30 mA, terre, câble — pas de prise »",t:"O",i:"eleve",s:"CETI · p.6"},
+  {d:"ceti",q:"CETI : volume mini du local (prise d'air dans la pièce) ?",a:"<b>20 à 30 m³</b> minimum.",u:"m³",cd:"Si aspiration/rejet d'air dans le local du chauffe-eau",ch:"&lt; 20 m³ → passer en split ou air gainé.",m:"« sous 20 m³, je gaine ou je splitte »",t:"C",i:"eleve",s:"CETI · p.7 / p.10"},
+  {d:"ceti",q:"CETI : renouvellement d'air si prise dans la pièce ?",a:"<b>&gt; 10 volumes/h</b> · débit ~<b>300 m³/h</b> (refroidit la pièce et l'eau).",u:"vol/h · m³/h",cd:"Prise d'air dans la pièce",ch:"Argument pour orienter vers air extérieur/gainé.",m:"« 300 m³/h = la pièce se refroidit »",t:"C",i:"moy",s:"CETI · p.7-8"},
+  {d:"ceti",q:"CETI : longueur max des conduits d'air (prise extérieure) ?",a:"<b>≤ 7 m</b> (au-delà : pertes de charge trop élevées).",u:"m",cd:"Prise d'air extérieure",ch:"Conduits rigides PVC/PEHD isolés, les plus courts possibles.",m:"« 7 m max pour l'air »",t:"C",i:"moy",s:"CETI · p.8"},
+  {d:"ceti",q:"CETI sur air extérieur : à quelle T° la PAC décroche ?",a:"Rendement chute, <b>arrêt sous 5 °C</b>.",u:"°C",cd:"Air entrant extérieur en hiver",ch:"En zone froide → relais résistance / mode auto.",m:"« sous 5 °C la PAC décroche »",t:"C",i:"moy",s:"CETI · p.8"},
+  {d:"ceti",q:"CETI : distances des conduits d'air aux parois ?",a:"<b>≥ 10 cm</b> des murs · <b>≥ 40 cm</b> du plafond.",u:"cm",cd:"Branchement des conduits d'air",ch:"Sorties façade séparées d'au moins 50 cm + grilles.",m:"« 10 / 40 / 50 »",t:"C",i:"moy",s:"CETI · p.10"},
+  {d:"ceti",q:"CETI : écart entre sorties d'air en façade ?",a:"Séparées <b>≥ 50 cm</b>, protégées par grilles.",u:"cm",cd:"Façade",ch:"Interdit de réduire le Ø des conduits pour percer plus facilement.",m:"« 50 cm entre les deux bouches »",t:"C",i:"moy",s:"CETI · p.10"},
+  {d:"ceti",q:"CETI : volume de stockage courant du ballon ?",a:"Généralement <b>150 à 300 L</b>.",u:"L",cd:"Gamme courante CETI",ch:"Capacité ≈ besoins : surdimensionner dégrade le COP.",m:"« 150-300 L, ni plus ni moins »",t:"C",i:"moy",s:"CETI · p.6"},
+  {d:"ceti",q:"CETI : COP normatif typique ?",a:"Autour de <b>2,5</b> (ex. COP 3 = 1 kWh consommé → 3 kWh restitués).",u:"—",cd:"Mesuré en labo, conditions stabilisées",ch:"COP réel &lt; COP normatif selon climat/usage.",m:"« 2,5 normatif ≠ réel »",t:"C",i:"moy",s:"CETI · p.7"},
+  {d:"ceti",q:"CETI : seuil de bruit gênant ?",a:"<b>&gt; 50 dB</b> · <b>+3 dB = ×2</b> de bruit perçu.",u:"dB",cd:"Ne pas installer près des chambres/pièces de vie au-dessus du seuil",ch:"Critère de choix & d'emplacement ; sinon split.",m:"« 50 dB = la limite ; +3 dB = ×2 »",t:"C",i:"eleve",s:"CETI · p.16"},
+  {d:"ceti",q:"CETI : capacité conseillée selon la famille ?",a:"<b>300 L → 6 pers</b> · <b>150-200 L → 4 pers</b>.",u:"L",cd:"Repère de dimensionnement",ch:"Couple / personne seule → souvent non rentable (p.18).",m:"« 300/6, 150-200/4 »",t:"C",i:"moy",s:"CETI · p.17"},
+  {d:"ceti",q:"CETI : à quelle T° d'air le COP de gamme est-il calculé ?",a:"COP de gamme calculé pour <b>+7 °C</b>. Montagne / Nord-Est : déconseillé ; Méditerranée/Ouest/Sud-Ouest : adapté.",u:"°C",cd:"Pertinence selon région",ch:"Argumenter selon la zone climatique du client.",m:"« COP donné pour +7 °C »",t:"C",i:"moy",s:"CETI · p.17"},
+  {d:"ceti",q:"CETI couplé à la VMC : intérêt ?",a:"Air repris ≈ <b>20 °C</b> → performance constante toute l'année.",u:"°C",cd:"Sur air extrait + VMC hygro",ch:"Vérifier/adapter le débit VMC vs débit CETI (p.14).",m:"« VMC = 20 °C constants »",t:"C",i:"moy",s:"CETI · p.13"},
+  {d:"ceti",q:"CETI : norme d'installation électrique ?",a:"<b>NF C 15-100</b> + préconisations fabricant.",u:"—",cd:"Toute configuration",ch:"+ siphon d'écoulement, évacuation des condensats de la PAC.",m:"« 15-100 + notice »",t:"O",i:"eleve",s:"CETI · p.6"},
+  {d:"ceti",q:"CETI : raccordement sur contacteur HP/HC ?",a:"<b>Pas de contacteur HP/HC</b> : fonctionnement permanent. Remplir le ballon avant de remettre le courant.",u:"—",cd:"Fonctionnement permanent",ch:"⚠️ Contextuel — voir « à ne pas confondre » sur le HP/HC.",m:"« CETI = marche permanente »",t:"C",i:"eleve",s:"CETI · p.12"},
+  {d:"ceti",q:"CETI : mode anti-légionnelle ?",a:"Montée en température (option). <b>Température cible : Non précisé dans le document.</b> 5 modes : thermo / auto / accéléré / absence / anti-légio.",u:"°C",cd:"Détruire les légionnelles",ch:"Non précisé dans le document (valeur exacte et fréquence).",m:"« 5 modes : thermo / auto / accéléré / absence / anti-légio »",t:"C",i:"moy",s:"CETI · p.5"},
+
+  // ─── SOLAIRE · GÉNÉRALITÉS & CAPTEURS (Chap.15) ───
+  {d:"solgen",q:"Solaire : température ECS produite ?",a:"<b>45 à 60 °C</b> (préchauffage 30-40 °C en hiver, appoint complète).",u:"°C",cd:"Usage domestique CESI",ch:"L'appoint complète toujours le solaire.",m:"« 45-60 visé, 30-40 préchauffé »",t:"C",i:"moy",s:"CESI · p.3"},
+  {d:"solgen",q:"Solaire : couverture annuelle d'un CESI ?",a:"<b>40 à 70 %</b> selon la région ; appoint toujours nécessaire en métropole.",u:"%",cd:"Selon région",ch:"Toujours prévoir une énergie d'appoint.",m:"« 40-70 % solaire, jamais 100 % »",t:"C",i:"moy",s:"CESI · p.3-4"},
+  {d:"solgen",q:"Solaire : surface de capteurs d'un CESI courant ?",a:"<b>2 à 6 m²</b>.",u:"m²",cd:"CESI courant",ch:"À recroiser avec le ratio V/S et le nombre d'occupants.",m:"« 2 à 6 m² de capteurs »",t:"C",i:"moy",s:"CESI · p.4"},
+  {d:"solgen",q:"Solaire : écart de T° entrée/sortie échangeur en fonctionnement ?",a:"Rarement <b>&gt; 10 °C</b> par temps ensoleillé (sinon ajuster le débit).",u:"°C",cd:"Par temps ensoleillé",ch:"Thermomètres entrée + sortie pour le diagnostic.",m:"« plus de 10 °C d'écart = je règle le débit »",t:"C",i:"moy",s:"CESI · p.5"},
+  {d:"solgen",q:"Solaire : norme des capteurs ?",a:"<b>NF EN 12975</b> — P.1 (exigences) & P.2 (essais).",u:"—",cd:"Certifications requises pour les subventions",ch:"Vérifier le marquage avant pose.",m:"« 12975 : P1 exige, P2 teste »",t:"O",i:"eleve",s:"CESI · p.21"},
+  {d:"solgen",q:"Solaire : épaisseur du couvercle d'un capteur plan vitré ?",a:"Verre trempé <b>4 mm</b>.",u:"mm",cd:"Capteur plan vitré",ch:"Laisse passer les courtes λ, bloque les grandes λ (effet de serre).",m:"« 4 mm de verre trempé »",t:"C",i:"info",s:"CESI · p.21"},
+  {d:"solgen",q:"Solaire : garantie du vide d'un capteur à tubes sous vide ?",a:"<b>10 ans</b>. Témoin baryum : argenté → blanc = perte de vide.",u:"ans",cd:"Capteur à tubes sous vide",ch:"Tube non hermétique = à changer.",m:"« vide garanti 10 ans, témoin baryum »",t:"C",i:"moy",s:"CESI · p.22-23"},
+  {d:"solgen",q:"Solaire : coût d'un capteur moquette (piscine) ?",a:"≈ <b>100 €/m²</b> · surface 1/3 à 2/3 du bassin (non vitré, ne produit pas d'ECS).",u:"€/m²",cd:"Réservé piscine, basse température",ch:"Valeur de cours — réservé piscine.",m:"« moquette = piscine, 100 €/m² »",t:"C",i:"info",s:"CESI · p.19"},
+  {d:"solgen",q:"Solaire : coefficient k de pertes thermiques ?",a:"Capteur plan ≈ <b>3 W/m².K</b> · sous vide ≈ <b>1</b> (÷4). P pertes = k × S × ΔT.",u:"W/m².K",cd:"Valeur de cours",ch:"Le sous-vide perd 4× moins que le plan.",m:"« plan 3, vide 1 »",t:"C",i:"info",s:"CESI · p.52"},
+
+  // ─── SOLAIRE · CIRCUIT PRIMAIRE, FLUIDE & SÉCURITÉ (Chap.15) ───
+  {d:"solcirc",q:"Solaire : débit du fluide caloporteur (high-flow) ?",a:"<b>40 à 70 L/h par m²</b> de capteur · vitesse ≤ 1 m/s. Low-flow : 15 à 30 L/h.m².",u:"L/h.m²",cd:"High-flow",ch:"Low-flow : 15 à 30 L/h.m² (p.57).",m:"« 40-70 high, 15-30 low »",t:"C",i:"eleve",s:"CESI · p.25 / p.33 / p.56"},
+  {d:"solcirc",q:"Solaire : vitesse max de circulation dans le primaire ?",a:"<b>≤ 1 m/s</b>.",u:"m/s",cd:"Tuyauteries du circuit primaire",ch:"Détermine le Ø du tube avec le débit.",m:"« jamais plus d'1 m/s »",t:"C",i:"moy",s:"CESI · p.33 / p.56"},
+  {d:"solcirc",q:"Solaire : tarage de la soupape du circuit primaire ?",a:"Généralement <b>6 bar</b> (évacue les surpressions).",u:"bar",cd:"Circuit primaire capteurs",ch:"Raccorder vers un bidon transparent (témoin de fuite).",m:"« soupape primaire = 6 bar »",t:"C",i:"eleve",s:"CESI · p.24"},
+  {d:"solcirc",q:"Solaire : matériaux autorisés sur le circuit primaire ?",a:"<b>Cuivre ou inox uniquement</b>. Jamais PER/multicouche (dégradation à la T°).",u:"—",cd:"Circuit primaire",ch:"Jamais cuivre + acier galva ensemble (électrolyse).",m:"« cuivre/inox oui, PER jamais »",t:"O",i:"eleve",s:"CESI · p.33"},
+  {d:"solcirc",q:"Solaire : type de joints à utiliser ?",a:"<b>Graphite</b>, pas de fibre (la fibre se dégrade avec eau + antigel).",u:"—",cd:"Raccords CESI",ch:"Souvent fournis dans le kit fabricant.",m:"« graphite, jamais fibre »",t:"O",i:"moy",s:"CESI · p.57"},
+  {d:"solcirc",q:"Solaire : épaisseur mini d'isolant de tuyauterie ?",a:"Min <b>19 mm</b> (λ = 0,04), type Armaflex HT.",u:"mm",cd:"Tuyauterie circuit primaire",ch:"Extérieur : revêtement clair anti-UV sinon HS &lt; 2 ans.",m:"« 19 mm mini, clair dehors »",t:"O",i:"eleve",s:"CESI · p.34 / p.72"},
+  {d:"solcirc",q:"Solaire : antigel et protection minimale ?",a:"<b>MPG qualité alimentaire</b> · protection min <b>-25 °C</b>.",u:"°C",cd:"Fourni par le fabricant, jamais à l'égout",ch:"Contrôle au réfractomètre ; durée 8-10 ans si pas de surchauffe.",m:"« MPG alimentaire, -25 °C mini »",t:"O",i:"eleve",s:"CESI · p.34-36"},
+  {d:"solcirc",q:"Solaire : caractéristiques du fluide caloporteur ?",a:"Ébullition &gt; <b>150 °C</b> · congélation &lt; <b>-50 °C</b> · densité <b>1054-1058 g/dm³</b> · <b>pH 7,5-8,5</b>.",u:"°C / g/dm³ / pH",cd:"Vieillissement précoce &gt; 170 °C ou 280 °C",ch:"Contrôler limpidité, protection au froid, pH.",m:"« pH 7,5-8,5, surveille la couleur »",t:"C",i:"info",s:"CESI · p.36"},
+  {d:"solcirc",q:"Solaire : caractéristiques du vase d'expansion ?",a:"Service <b>4 bar</b> · épreuve <b>10 bar</b> · plage <b>-20/+140 °C</b>.",u:"bar / °C",cd:"Antigel jusqu'à 50 %",ch:"Raccordé sans organe de coupure (pas de vanne, p.27).",m:"« vase : 4 service, 10 épreuve »",t:"C",i:"moy",s:"CESI · p.29"},
+  {d:"solcirc",q:"Solaire : pression de gonflage du vase (P0) ?",a:"<b>P0 = H/10 + 1,5</b> (bar) · H = hauteur manométrique en mCE, vase à vide.",u:"bar",cd:"Vase à vide",ch:"= P0, à noter sur le vase.",m:"« P0 = H/10 + 1,5 »",t:"C",i:"eleve",s:"CESI · p.29 / p.77"},
+  {d:"solcirc",q:"Solaire : pression de service après remplissage (P1) ?",a:"<b>P1 = P0 + 0,5</b> = H/10 + 1,5 + 0,5 (bar).",u:"bar",cd:"Après remplissage",ch:"Mise en pression ~90 % du tarage soupape (~5 bar) puis descendre à P1.",m:"« P1 = P0 + 0,5 »",t:"C",i:"eleve",s:"CESI · p.30 / p.78"},
+  {d:"solcirc",q:"Solaire : seuil de la soupape de sécurité T°/P (sortie ballon) ?",a:"Évacue si T° dépasse <b>90 à 95 °C</b> (ou si pression &gt; tarage). Raccordée aux EU, hors gel.",u:"°C",cd:"Sortie ballon",ch:"Canalisation de descente à écoulement continu.",m:"« 90-95 °C, ça crache »",t:"C",i:"moy",s:"CESI · p.11-12"},
+  {d:"solcirc",q:"Solaire : à partir de quelle HMT le purgeur de toit devient inutile ?",a:"Pompe HMT <b>≥ 40 m</b> → plus de purgeur en point haut (sinon purgeur à chaque point haut).",u:"m",cd:"Sinon purgeur à chaque point haut",ch:"Privilégier un dégazeur en partie basse, pas sur le toit.",m:"« 40 m HMT = plus de purgeur toit »",t:"C",i:"info",s:"CESI · p.31"},
+
+  // ─── SOLAIRE · RÉGULATION (Chap.15) ───
+  {d:"solreg",q:"Solaire : condition de démarrage du circulateur (circulation forcée) ?",a:"<b>ΔT = Tc − Tb &gt; DD</b> (DD = différentiel de démarrage).",u:"K",cd:"Circulation forcée",ch:"Sous-pression : seuil d'écart 4 à 7 °C (p.14).",m:"« chaud capteur &gt; ballon + DD → ça démarre »",t:"C",i:"eleve",s:"CESI · p.37"},
+  {d:"solreg",q:"Solaire : valeur du différentiel de démarrage (DD) ?",a:"<b>5 à 10 K</b> (valeurs fabricant).",u:"K",cd:"Valeurs proposées par les fabricants",ch:"DD trop élevé = retard de mise en circulation.",m:"« DD : 5-10 K »",t:"F",i:"moy",s:"CESI · p.37"},
+  {d:"solreg",q:"Solaire : valeur du différentiel d'arrêt (DA) ?",a:"<b>2 à 4 K</b> (valeurs fabricant).",u:"K",cd:"Valeurs proposées par les fabricants",ch:"DA trop bas = déstockage ; hystérésis faible = pompage.",m:"« DA : 2-4 K »",t:"F",i:"moy",s:"CESI · p.37"},
+  {d:"solreg",q:"Solaire : formule du DA (régulation 3 sondes) ?",a:"<b>DA = Tc − Tin + 1</b> · Tin = entrée fluide échangeur (S4) · <b>DD = DA + 4</b>.",u:"—",cd:"Régulation 3 sondes",ch:"DD = DA + 4 évite les courts cycles.",m:"« DA = Tc−Tin+1 ; DD = DA+4 »",t:"C",i:"info",s:"CESI · p.39"},
+  {d:"solreg",q:"Solaire : exemple de réglages de régulation à la mise en service ?",a:"<b>LIM 120 · RMX 60 · CMX 110 (°C)</b> (LIM = limite capteur, RMX = réservoir max, CMX = capteur max).",u:"°C",cd:"Exemple de régulation",ch:"Adapter selon la notice.",m:"« LIM 120 / RMX 60 / CMX 110 »",t:"Ex",i:"moy",s:"CESI · p.78"},
+  {d:"solreg",q:"Solaire : débit de réglage à la mise en service ?",a:"≈ <b>50 L/h par m²</b> de capteur, à froid (30-40 °C), via débitmètre.",u:"L/h.m²",cd:"Mise en service",ch:"Régler en marche forcée (MAN 1: ON) puis repasser en Auto.",m:"« réglage débit ≈ 50 L/h.m² »",t:"Ex",i:"moy",s:"CESI · p.78"},
+
+  // ─── SOLAIRE · DIMENSIONNEMENT & POSE (Chap.15) ───
+  {d:"soldim",q:"Solaire : besoin ECS de référence (ADEME) ?",a:"<b>50 L à 50 °C / personne / jour</b> (ADEME 2013).",u:"L/jour",cd:"Source ADEME 2013",ch:"Variante COSTIC : 56 L/pers à 40 °C (p.53).",m:"« 50 L à 50 °C / pers (ADEME) »",t:"C",i:"eleve",s:"CESI · p.46"},
+  {d:"soldim",q:"Solaire : consommation de calcul moyenne ?",a:"<b>33 L à 50 °C / pers</b> (éco 20 / moyen 33 / peu éco 50).",u:"L/jour",cd:"À moduler selon les habitudes",ch:"⚠️ Ne pas confondre 33 (calcul) et 50 (besoin réf.).",m:"« 20 / 33 / 50 selon le profil »",t:"C",i:"moy",s:"CESI · p.44 / p.48"},
+  {d:"soldim",q:"Solaire : volume du ballon avec appoint interne ?",a:"<b>1,5 × Besoin ECS × nb pers</b>.",u:"L",cd:"Ballon solaire bi-énergie",ch:"Mixte élec HC : jusqu'à ×2 (p.45).",m:"« interne = ×1,5 »",t:"C",i:"eleve",s:"CESI · p.46"},
+  {d:"soldim",q:"Solaire : volume du ballon avec appoint externe ?",a:"<b>1 × Besoin ECS × nb pers</b>.",u:"L",cd:"Ballon solaire en amont de la chaudière",ch:"Vertical solaire = conso journalière (p.45).",m:"« externe = ×1 »",t:"C",i:"moy",s:"CESI · p.46"},
+  {d:"soldim",q:"Solaire : ratio V/S par zone climatique ?",a:"<b>I1 45 · I2 55 · I3 65 · I4 75 (L/m²)</b> · V = vol solaire (L/j), S = surface capteurs (m²).",u:"L/m²",cd:"Couverture 40-60 %, eau 50 °C, conso 33 L/j",ch:"Du Nord (45) au Sud (75).",m:"« 45-55-65-75 du Nord au Sud »",t:"C",i:"eleve",s:"CESI · p.47"},
+  {d:"soldim",q:"Solaire : taux de couverture cible ?",a:"Doit rester <b>&gt; 50 %</b>, sans surdimensionner.",u:"%",cd:"Sans surdimensionner",ch:"Privilégier la productivité kWh/m² plutôt que la couverture max.",m:"« couverture &gt; 50 %, pas plus de capteurs »",t:"C",i:"moy",s:"CESI · p.50"},
+  {d:"soldim",q:"Solaire : inclinaison des capteurs (ECS vs chauffage) ?",a:"ECS ≈ latitude, soit <b>45° (métropole)</b> · chauffage SSC ~<b>60°</b>.",u:"°",cd:"Besoin annuel ECS",ch:"45°/plein sud = idée reçue ; SSC viser ~60°.",m:"« 45° ECS, 60° chauffage »",t:"C",i:"moy",s:"CESI · p.55"},
+  {d:"soldim",q:"Solaire : distance mini capteurs / conduit de fumée ?",a:"<b>≥ 1 m</b> (Avis technique 4.1 ; éviter les salissures de fumées).",u:"m",cd:"Avis technique 4.1",ch:"Tenir compte du vent dominant.",m:"« 1 m mini de la cheminée »",t:"O",i:"eleve",s:"CESI · p.62"},
+  {d:"soldim",q:"Solaire : hauteur fond de coffre / couverture (capteurs démontables) ?",a:"Min <b>20 cm</b>.",u:"cm",cd:"Capteurs en surimposition démontables",ch:"Prévoir l'accès entretien/réparation (DTU couverture).",m:"« 20 cm si démontable »",t:"O",i:"moy",s:"CESI · p.61"},
+  {d:"soldim",q:"Solaire : hauteur fond de coffre (capteurs non démontables) ?",a:"<b>40 cm</b> (capteur &lt; 1,20 m) · <b>80 cm</b> (&gt; 1,20 m).",u:"cm",cd:"Non démontables",ch:"Dépend de la largeur du capteur.",m:"« 40 / 80 selon largeur capteur »",t:"O",i:"moy",s:"CESI · p.61"},
+  {d:"soldim",q:"Solaire : réglage du pied de support (collerette d'étanchéité) ?",a:"Section ronde/rectangulaire sur ≈ <b>30 cm</b> dès la couverture.",u:"cm",cd:"Fixation sur charpente, jamais sur écran rigide",ch:"Vérifier la résistance de la charpente + fixations.",m:"« 30 cm pour la collerette étanche »",t:"O",i:"moy",s:"CESI · p.58-59"},
+  {d:"soldim",q:"Solaire : profondeur de la tuyauterie enterrée ?",a:"≈ <b>0,50 m</b> mini (lu sur schéma), calorifugé dans gaine ICT/PVC, extrémités étanches.",u:"m",cd:"Schéma de tranchée",ch:"Valeur lue sur schéma — à confirmer DTU.",m:"« tranchée ≈ 50 cm »",t:"C",i:"info",s:"CESI · p.72"},
+  {d:"soldim",q:"Solaire : Ø des tubes CESI en circulation forcée (ex. ≤ 20 m) ?",a:"High-flow : 5 m² → <b>14/16</b> cu · 8 m² → <b>16/18</b> · 20 m² → <b>20/22</b>.",u:"mm",cd:"Aller-retour ≤ 20 m",ch:"Inox &gt; cuivre d'un cran ; low-flow plus petit.",m:"« 14/16 → 16/18 → 20/22 (5/8/20 m²) »",t:"Ex",i:"moy",s:"CESI · p.57"},
+  {d:"soldim",q:"Solaire : Ø mini d'un capteur thermosiphon (capteur échelle) ?",a:"Verticaux <b>≥ 12 mm</b> · collecteur <b>22 mm</b>.",u:"mm",cd:"CESI thermosiphon à éléments séparés",ch:"Ballon au-dessus du capteur, pente régulière, pas de contre-pente.",m:"« 12 verticaux / 22 collecteur »",t:"C",i:"info",s:"CESI · p.13"},
+  {d:"soldim",q:"Solaire : volume du vase d'expansion CESI (ex. ≤ 20 m) ?",a:"5 m² → <b>18 L</b> · 7 m² → <b>25 L</b> · 10 m² → <b>35 L</b> · 18 m² → <b>60 L</b>.",u:"L",cd:"Exemple distance ≤ 20 m capteurs/ballon",ch:"Sous-dimensionné = la soupape s'ouvre = perte de fluide.",m:"« 18/25/35/60 selon 5/7/10/18 m² »",t:"Ex",i:"moy",s:"CESI · p.49-50"},
+  {d:"soldim",q:"Solaire : productivité annuelle ?",a:"<b>400 à 700 kWh/m².an</b> (Toulouse ≈ 600).",u:"kWh/m².an",cd:"Comparatif autovidangeable",ch:"Bon compromis économique.",m:"« 400-700, Toulouse 600 »",t:"C",i:"info",s:"CESI · p.53"},
+  {d:"soldim",q:"Solaire : rendement cumulus élec de référence (calcul) ?",a:"≈ <b>70 %</b> (4 cm de mousse PU).",u:"%",cd:"Valeur de comparatif",ch:"Énergie éco. = production solaire / rendement cumulus.",m:"« cumulus ≈ 70 % »",t:"C",i:"info",s:"CESI · p.54"},
+  {d:"soldim",q:"Solaire : durées de vie comparées (exemple) ?",a:"Cumulus élec <b>8 ans</b> · autovidangeable <b>20 ans</b>.",u:"ans",cd:"Exemple chiffré du document",ch:"Prix ex. : cumulus 250 L ≈ 1200 € / autovid. ≈ 6000 € (à actualiser).",m:"« 8 ans vs 20 ans »",t:"Ex",i:"info",s:"CESI · p.54"}
+];
+
+const QUIZ = [
+  {d:"temp",q:"Température max ECS dans une pièce de toilette ?",o:["45 °C","50 °C","55 °C","60 °C"],c:1,e:"50 °C (toilette), 60 °C dans les autres pièces. Arrêté du 30 nov. 2005."},
+  {d:"temp",q:"Température de stockage anti-bactérienne de l'ECS ?",o:["40 °C","50 °C","55 °C","60 °C"],c:3,e:"60 °C de stockage (destruction des légionelles)."},
+  {d:"temp",q:"Temps de brûlure à 60 °C ?",o:["1 s","7 s","8 min","1 min"],c:1,e:"60 °C → 7 s ; 50 °C → 8 min ; 70 °C → 1 s."},
+  {d:"temp",q:"Volume de stockage déclenchant la règle ≥ 55 °C / choc thermique ?",o:["100 L","200 L","300 L","400 L"],c:3,e:"≥ 400 L : ≥ 55 °C permanent, ou 70 °C ≥ 2 min / 65 °C ≥ 4 min / 60 °C ≥ 60 min."},
+  {d:"temp",q:"Cuisines/buanderies en ERP : température ECS max possible ?",o:["60 °C","70 °C","90 °C","100 °C"],c:2,e:"Jusqu'à 90 °C en certains points, avec signalisation particulière."},
+  {d:"press",q:"Pression de réglage de la soupape du groupe de sécurité ?",o:["3 bar","5 bar","7 bar","10 bar"],c:2,e:"7 bar."},
+  {d:"press",q:"Couleur d'un vase d'expansion sanitaire ?",o:["Rouge","Bleu","Blanc","Vert"],c:2,e:"Blanc (le rouge = vase de chauffage)."},
+  {d:"press",q:"Une chaudière mixte instantanée est interdite…",o:["au garage","en SdB / chambre / séjour","en cuisine","dans les combles"],c:1,e:"Salles de bains, chambres à coucher et séjours."},
+  {d:"ecsdim",q:"Besoin ECS par personne et par jour (à 60 °C) ?",o:["20 L","30 L","50 L","80 L"],c:2,e:"50 L/pers/jour."},
+  {d:"ecsdim",q:"Gamme de puissance d'un chauffe-eau électrique instantané ?",o:["2 à 30 kW","1 à 5 kW","7 à 10 kW","30 à 50 kW"],c:0,e:"2 à 30 kW (un seul point d'eau)."},
+  {d:"ecsdim",q:"Puissance d'un chauffe-eau électrique à accumulation ?",o:["500–1000 W","2000–3000 W","5000 W","30 kW"],c:1,e:"2000 à 3000 W selon la capacité."},
+  {d:"diam",q:"Ø cuivre d'alimentation d'une baignoire ?",o:["12×1","14×1","16×1","18×1"],c:2,e:"16×1 (douche 14×1, lavabo 12×1)."},
+  {d:"diam",q:"Ø cuivre d'alimentation d'un lavabo ?",o:["10×1","12×1","14×1","16×1"],c:1,e:"12×1 (comme lave-mains, chasse d'eau, lave-linge)."},
+  {d:"diam",q:"Ø de gaine VMC pour le rejet en toiture ?",o:["Ø80","Ø100","Ø125","Ø160"],c:3,e:"Ø160 (cuisine Ø125, WC Ø80)."},
+  {d:"ecsmat",q:"Quelle résistance privilégier en eau calcaire ?",o:["Blindée","Stéatite","Titane","Cuivre"],c:1,e:"Stéatite (placée dans un fourreau, protégée du tartre)."},
+  {d:"ecsmat",q:"L'anode magnésium est dite…",o:["permanente","sacrificielle","à courant imposé","inox"],c:1,e:"Sacrificielle : elle se corrode à la place de la cuve."},
+  {d:"ecsmat",q:"Surconsommation électrique pour 1 mm de calcaire ?",o:["2 %","10 %","25 %","50 %"],c:1,e:"+10 % à 1 mm ; jusqu'à +50 % à 12 mm."},
+  {d:"ecsmat",q:"Le contacteur HP/HC convient à…",o:["un chauffe-eau gaz","un chauffe-eau électrique à ballon","un chauffe-eau instantané","toute chaudière"],c:1,e:"Uniquement le chauffe-eau électrique à ballon."},
+  {d:"ecsmat",q:"Rendement PCI d'un accumulateur gaz à condensation (EN 89) ?",o:["≥ 85 %","≥ 91 %","≥ 98 %","100 %"],c:2,e:"≥ 98 % selon EN 89 (haut rendement ~91 % ventouse)."},
+  {d:"physique",q:"Chaleur massique de l'eau ?",o:["0,34 Wh/kg.°C","1,16 Wh/kg.°C","1000 J","4,18 kJ"],c:1,e:"1,16 Wh/kg.°C."},
+  {d:"physique",q:"Chaleur volumique de l'air ?",o:["0,34 Wh/m³.K","1,16 Wh/m³.K","1,2 kg/m³","0,28 Wh"],c:0,e:"0,34 Wh/(m³.K) à 20 °C et 50 % HR."},
+  {d:"physique",q:"Formule de puissance pour l'air ?",o:["P = qv × 1,16 × ΔT","P = qv × 0,34 × ΔT","P = qv × ΔT","P = qv / ΔT"],c:1,e:"P = qv × 0,34 × ΔT (W, m³/h). Pour l'eau : ×1,16 (W, l/h)."},
+  {d:"vmctypes",q:"Taux de récupération de chaleur d'une VMC double flux ?",o:["50 %","75 %","92 %","100 %"],c:2,e:"92 % des calories de l'air extrait."},
+  {d:"vmctypes",q:"Différence hygro type A / type B ?",o:["Aucune","Le type B a aussi des entrées hygroréglables","Le type A est double flux","Le type B est en tertiaire"],c:1,e:"Type B : les entrées d'air sont AUSSI hygroréglables."},
+  {d:"vmctypes",q:"La VMC par insufflation est-elle admise en neuf ?",o:["Oui","Non","En tertiaire seulement","Sous conditions"],c:1,e:"Non : hors RT2012 et RT2020."},
+  {d:"vmcdebit",q:"Débit d'une grille d'entrée d'air autoréglable ?",o:["5 à 10 m³/h","15, 22 ou 30 m³/h","40 à 60 m³/h","90 m³/h"],c:1,e:"15, 22 ou 30 m³/h selon le modèle."},
+  {d:"vmcdebit",q:"Texte fixant les débits d'air en logement neuf ?",o:["Arrêté du 24 mars 1982","RT2012","DTU 60.11","EN 13203"],c:0,e:"Arrêté du 24 mars 1982 (modifié le 28 oct. 1983)."},
+  {d:"vmcpose",q:"Peut-on raccorder une hotte de cuisine sur la VMC ?",o:["Oui","Non, jamais","Si Ø125","En tertiaire"],c:1,e:"Non, jamais (risque incendie sur PVC, encrassement)."},
+  {d:"vmcpose",q:"Où placer le groupe d'extraction ?",o:["Au sol","Fixé au mur","Suspendu dans les combles","En façade"],c:2,e:"Suspendu dans les combles, au-dessus d'une pièce de service."},
+  {d:"vmcentr",q:"Fréquence de changement des filtres d'une VMC double flux ?",o:["1 mois","6 mois","2 ans","10 ans"],c:1,e:"Tous les 6 mois (insufflé + extrait)."},
+  {d:"vmcentr",q:"Fréquence de nettoyage des conduits (double flux) ?",o:["1 an","5 ans","10 ans","jamais"],c:2,e:"Tous les 10 ans (ramonage conduits rigides : 5 ans)."},
+  {d:"tertiaire",q:"Le dispositif QAI s'applique depuis…",o:["2012","2020","1er janvier 2023","2025"],c:2,e:"1er janvier 2023, dans certains ERP."},
+  {d:"tertiaire",q:"Matériau de conduit le plus répandu en tertiaire ?",o:["PVC","Acier galvanisé","Inox","Aluminium"],c:1,e:"Acier galvanisé (Galva), peu coûteux et facile à poser."},
+
+  {d:"ceti",q:"CETI : calibre du différentiel obligatoire ?",o:["10 mA","30 mA","100 mA","300 mA"],c:1,e:"30 mA + terre + alim spécifique (NF C 15-100)."},
+  {d:"ceti",q:"CETI : volume mini du local si prise d'air dans la pièce ?",o:["10 m³","20 à 30 m³","50 m³","100 m³"],c:1,e:"20 à 30 m³ ; sous 20 m³ → split ou air gainé."},
+  {d:"ceti",q:"CETI : seuil de bruit gênant ?",o:["30 dB","40 dB","50 dB","70 dB"],c:2,e:"50 dB ; +3 dB = 2× plus de bruit perçu."},
+  {d:"ceti",q:"CETI sur air extérieur : la PAC décroche sous…",o:["0 °C","5 °C","-5 °C","10 °C"],c:1,e:"Sous 5 °C, le rendement chute."},
+  {d:"ceti",q:"CETI : raccordement sur contacteur HP/HC ?",o:["Obligatoire","Pas de HP/HC (marche permanente)","Comme un cumulus élec","Seulement la nuit"],c:1,e:"Pas de contacteur HP/HC : fonctionnement permanent."},
+  {d:"ceti",q:"CETI : à quelle T° d'air le COP de gamme est-il donné ?",o:["+7 °C","0 °C","+15 °C","+20 °C"],c:0,e:"COP de gamme calculé pour +7 °C."},
+  {d:"solgen",q:"Solaire : couverture annuelle d'un CESI ?",o:["10-20 %","40-70 %","80-90 %","100 %"],c:1,e:"40 à 70 % ; appoint toujours nécessaire en métropole."},
+  {d:"solgen",q:"Solaire : norme des capteurs ?",o:["NF C 15-100","NF EN 12975","EN 13203","DTU 60.11"],c:1,e:"NF EN 12975 (P.1 exigences, P.2 essais)."},
+  {d:"solgen",q:"Solaire : coefficient k, capteur plan vs sous vide ?",o:["1 vs 3","3 vs 1","3 vs 3","1 vs 1"],c:1,e:"Plan ≈ 3 W/m².K, sous vide ≈ 1 (÷4)."},
+  {d:"solcirc",q:"Solaire : débit fluide en high-flow ?",o:["15-30 L/h.m²","40-70 L/h.m²","100 L/h.m²","5 L/h.m²"],c:1,e:"40-70 high-flow ; 15-30 low-flow ; vitesse ≤ 1 m/s."},
+  {d:"solcirc",q:"Solaire : matériaux du circuit primaire ?",o:["PER/multicouche","Cuivre ou inox uniquement","Acier galva","PVC"],c:1,e:"Cuivre ou inox seulement, jamais PER (dégradation T°)."},
+  {d:"solcirc",q:"Solaire : protection antigel minimale ?",o:["-10 °C","-25 °C","0 °C","-50 °C"],c:1,e:"-25 °C, MPG qualité alimentaire."},
+  {d:"solcirc",q:"Solaire : épaisseur mini d'isolant de tuyauterie ?",o:["9 mm","13 mm","19 mm","30 mm"],c:2,e:"19 mm (λ 0,04), anti-UV clair en extérieur."},
+  {d:"solcirc",q:"Solaire : tarage de la soupape du circuit primaire ?",o:["3 bar","6 bar","7 bar","10 bar"],c:1,e:"≈ 6 bar (le 7 bar = groupe de sécurité ECS, à ne pas confondre)."},
+  {d:"solcirc",q:"Solaire : formule de pression de gonflage du vase (P0) ?",o:["H/10 + 1,5","H/10 + 0,5","H + 1,5","H/10 − 1,5"],c:0,e:"P0 = H/10 + 1,5 ; pression de service P1 = P0 + 0,5."},
+  {d:"solreg",q:"Solaire : différentiels démarrage (DD) et arrêt (DA) ?",o:["DD 2-4 K / DA 5-10 K","DD 5-10 K / DA 2-4 K","DD = DA","DD 1 K / DA 1 K"],c:1,e:"DD 5-10 K (démarrage), DA 2-4 K (arrêt) ; DD = DA + 4."},
+  {d:"soldim",q:"Solaire : besoin ECS de référence ADEME ?",o:["33 L à 50 °C","50 L à 50 °C","56 L à 40 °C","100 L"],c:1,e:"50 L à 50 °C/pers (ADEME) ; 33 L = conso de calcul."},
+  {d:"soldim",q:"Solaire : volume ballon, appoint interne vs externe ?",o:["×1 / ×1,5","×1,5 / ×1","×2 / ×1","identique"],c:1,e:"Interne ×1,5, externe ×1 le besoin × nb pers."},
+  {d:"soldim",q:"Solaire : ratio V/S du Nord au Sud (I1→I4) ?",o:["75-65-55-45","45-55-65-75","50-50-50-50","45-45-45-45"],c:1,e:"I1 45 · I2 55 · I3 65 · I4 75 L/m²."},
+  {d:"soldim",q:"Solaire : inclinaison capteurs ECS vs chauffage ?",o:["30° / 45°","45° / 60°","60° / 45°","90° / 90°"],c:1,e:"ECS ≈ 45° (latitude), chauffage SSC ~60°."},
+  {d:"soldim",q:"Solaire : distance mini capteurs / conduit de fumée ?",o:["0,5 m","1 m","2 m","aucune"],c:1,e:"≥ 1 m (Avis technique 4.1), selon le vent dominant."}
+];
+
+/* ---------- ÉTAT ---------- */
+let activeDom="all";
+let view="cards";
+let order=[], idx=0, flipped=false;
+const known=new Set();
+let quizList=[], qi=0, score=0, streak=0, maxStreak=0, locked=false;
+
+/* ---------- FILTRES ---------- */
+function buildFilters(){
+  const f=document.getElementById("filters");
+  let html=`<button class="chip on" data-d="all" onclick="setDom('all')">Tout</button>`;
+  Object.entries(DOMS).forEach(([k,v])=>{
+    html+=`<button class="chip" data-d="${k}" onclick="setDom('${k}')">${v.label}</button>`;
+  });
+  f.innerHTML=html;
+}
+function setDom(d){
+  activeDom=d;
+  const root=getComputedStyle(document.documentElement);
+  document.querySelectorAll(".chip").forEach(ch=>{
+    const on=ch.dataset.d===d;
+    ch.classList.toggle("on",on);
+    if(on && d!=="all"){const c=root.getPropertyValue(DOMS[d].col).trim();ch.style.background=c;ch.style.color="#fff";}
+    else if(d!=="all"){ch.style.background="";ch.style.color="";}
+  });
+  if(view==="cards"){buildOrder();render();}
+  if(view==="quiz"){startQuiz();}
+  if(view==="table"){renderTable();}
+}
+
+/* ---------- VUES ---------- */
+function show(v){
+  view=v;
+  document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active",t.dataset.view===v));
+  document.getElementById("view-cards").classList.toggle("hide",v!=="cards");
+  document.getElementById("view-quiz").classList.toggle("hide",v!=="quiz");
+  document.getElementById("view-table").classList.toggle("hide",v!=="table");
+  document.getElementById("view-memo").classList.toggle("hide",v!=="memo");
+  document.getElementById("filters").classList.toggle("hide",v==="memo");
+  if(v==="cards"){buildOrder();render();}
+  if(v==="quiz"){startQuiz();}
+  if(v==="table"){renderTable();}
+}
+document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>show(t.dataset.view)));
+
+/* ---------- FLASHCARDS ---------- */
+function pool(){return CARDS.filter(c=>activeDom==="all"||c.d===activeDom);}
+function buildOrder(){order=pool().map((_,i)=>i);idx=0;flipped=false;}
+function render(){
+  const list=pool();
+  if(!list.length)return;
+  if(idx>=list.length)idx=0;
+  const c=list[idx];
+  const root=getComputedStyle(document.documentElement);
+  const col=root.getPropertyValue(DOMS[c.d].col).trim();
+  document.getElementById("card").classList.remove("flipped");flipped=false;
+  document.getElementById("card").style.setProperty("--dcol",col);
+  document.getElementById("fDom").textContent=DOMS[c.d].label;
+  document.getElementById("bDom").textContent=DOMS[c.d].label;
+  document.getElementById("fDom").style.color=col;
+  document.getElementById("bDom").style.color=col;
+  document.getElementById("fQ").textContent=c.q;
+  let aHtml=c.a;
+  if(c.cd) aHtml+=`<div class="bk-line"><span class="bk-tag">Condition</span> ${c.cd}</div>`;
+  if(c.ch) aHtml+=`<div class="bk-line bk-ch"><span class="bk-tag">🔧 Chantier</span> ${c.ch}</div>`;
+  if(c.m) aHtml+=`<div class="bk-line bk-m"><span class="bk-tag">🧠 Mémo</span> ${c.m}</div>`;
+  document.getElementById("fA").innerHTML=aHtml;
+  document.getElementById("fSrc").textContent=c.s+(c.u&&c.u!=="—"?"  ·  unité : "+c.u:"");
+  const tlabel={O:"Obligation",R:"Reco",Ex:"Exemple",F:"Fabricant",C:"Cours"}[c.t]||c.t;
+  const ilabel={crit:"Critique",eleve:"Élevée",moy:"Moyenne",info:"Info"}[c.i];
+  document.getElementById("fBadges").innerHTML=
+    `<span class="b ${c.i==='crit'?'crit':c.i==='eleve'?'eleve':''}">${ilabel}</span>`+
+    `<span class="b">${tlabel}</span>`;
+  document.getElementById("cardCount").textContent=`${idx+1} / ${list.length}`;
+  document.getElementById("cardBar").style.width=((idx+1)/list.length*100)+"%";
+  document.getElementById("knownCount").textContent="su : "+known.size;
+}
+function flip(){flipped=!flipped;document.getElementById("card").classList.toggle("flipped",flipped);}
+function mark(ok){
+  const list=pool();
+  const c=list[idx];
+  const gi=CARDS.indexOf(c);
+  if(ok)known.add(gi);else known.delete(gi);
+  idx=(idx+1)%list.length;
+  render();
+}
+
+/* ---------- QUIZ ---------- */
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function startQuiz(){
+  quizList=shuffle(QUIZ.filter(q=>activeDom==="all"||q.d===activeDom).slice());
+  qi=0;score=0;streak=0;maxStreak=0;locked=false;
+  document.getElementById("quizResult").classList.add("hide");
+  document.getElementById("quizPlay").classList.remove("hide");
+  renderQuiz();
+}
+function renderQuiz(){
+  if(!quizList.length){
+    document.getElementById("qQ").textContent="Aucune question pour ce filtre.";
+    document.getElementById("qOpts").innerHTML="";
+    document.getElementById("qDom").textContent="—";
+    document.getElementById("qNext").disabled=true;
+    return;
+  }
+  locked=false;
+  const q=quizList[qi];
+  const root=getComputedStyle(document.documentElement);
+  const col=root.getPropertyValue(DOMS[q.d].col).trim();
+  document.getElementById("qDom").textContent=DOMS[q.d].label;
+  document.getElementById("qDom").style.color=col;
+  document.getElementById("qQ").textContent=q.q;
+  document.getElementById("qProgress").textContent=`Question ${qi+1} / ${quizList.length}`;
+  document.getElementById("qScore").textContent=score+" pts";
+  document.getElementById("qStreak").textContent=`série ${streak}🔥`;
+  const keys=["A","B","C","D"];
+  document.getElementById("qOpts").innerHTML=q.o.map((o,i)=>
+    `<button class="opt" data-i="${i}" onclick="answer(${i})"><span class="k">${keys[i]}</span>${o}</button>`).join("");
+  const ex=document.getElementById("qExpl");ex.className="expl";ex.textContent="";
+  document.getElementById("qNext").disabled=true;
+  document.getElementById("qNext").textContent="Valider une réponse";
+}
+function answer(i){
+  if(locked)return;locked=true;
+  const q=quizList[qi];
+  document.querySelectorAll(".opt").forEach(b=>{
+    b.classList.add("locked");
+    const bi=+b.dataset.i;
+    if(bi===q.c)b.classList.add("good");
+    else if(bi===i)b.classList.add("bad");
+  });
+  if(i===q.c){score+=10;streak++;maxStreak=Math.max(maxStreak,streak);}
+  else{streak=0;}
+  document.getElementById("qScore").textContent=score+" pts";
+  document.getElementById("qStreak").textContent=`série ${streak}🔥`;
+  const ex=document.getElementById("qExpl");ex.textContent=q.e;ex.classList.add("show");
+  const btn=document.getElementById("qNext");btn.disabled=false;
+  btn.textContent=(qi+1<quizList.length)?"Question suivante →":"Voir le résultat";
+}
+function nextQuiz(){
+  if(qi+1<quizList.length){qi++;renderQuiz();}
+  else{showResult();}
+}
+function showResult(){
+  document.getElementById("quizPlay").classList.add("hide");
+  document.getElementById("quizResult").classList.remove("hide");
+  const pct=Math.round(score/(quizList.length*10)*100);
+  document.getElementById("rBig").textContent=pct+"%";
+  let v;
+  if(pct===100)v="Sans faute. Tu peux poser sur chantier 🔧";
+  else if(pct>=80)v="Solide. Quelques valeurs à revoir.";
+  else if(pct>=50)v="Ça vient. Refais un tour de flashcards.";
+  else v="À retravailler — passe en mode Flashcards.";
+  document.getElementById("rVerdict").textContent=v+`  (série max : ${maxStreak})`;
+}
+
+/* ---------- TABLEAU ---------- */
+function renderTable(){
+  const term=document.getElementById("search").value.toLowerCase().trim();
+  const root=getComputedStyle(document.documentElement);
+  const list=CARDS.filter(c=>{
+    if(activeDom!=="all"&&c.d!==activeDom)return false;
+    if(!term)return true;
+    const blob=(c.q+" "+c.a+" "+DOMS[c.d].label+" "+c.s+" "+(c.u||"")+" "+(c.cd||"")+" "+(c.ch||"")+" "+(c.m||"")).toLowerCase();
+    return blob.includes(term);
+  });
+  const box=document.getElementById("tableRows");
+  if(!list.length){box.innerHTML=`<div class="empty">Aucun résultat.</div>`;return;}
+  const tlabel={O:"Obligation",R:"Reco",Ex:"Exemple",F:"Fabricant",C:"Cours"};
+  const ilabel={crit:"Critique",eleve:"Élevée",moy:"Moyenne",info:"Info"};
+  box.innerHTML=list.map(c=>{
+    const col=root.getPropertyValue(DOMS[c.d].col).trim();
+    return `<div class="row" style="--dcol:${col}">
+      <div class="top"><span class="el">${c.q.replace(/\?$/,'')}</span>
+      <span class="b ${c.i==='crit'?'crit':c.i==='eleve'?'eleve':''}">${ilabel[c.i]}</span></div>
+      <div class="val">${c.a}</div>
+      ${c.u&&c.u!=="—"?`<div class="rmeta"><b>Unité</b> ${c.u}</div>`:''}
+      ${c.cd?`<div class="rmeta"><b>Condition</b> ${c.cd}</div>`:''}
+      ${c.ch?`<div class="rmeta rch"><b>🔧 Chantier</b> ${c.ch}</div>`:''}
+      ${c.m?`<div class="rmnemo">🧠 ${c.m}</div>`:''}
+      <div class="foot"><span>${DOMS[c.d].label} · ${tlabel[c.t]}</span><span>${c.s}</span></div>
+    </div>`;
+  }).join("");
+}
+
+/* ---------- INIT ---------- */
+buildFilters();
+buildOrder();
+render();
+</script>
+
+<!-- UI/UX uniquement : retour accueil + suivi de progression + module suivant -->
+<script>
+(function(){
+  var ORDER = ['revision_tuyaux_soudure.html','revision_sanitaire_evacuation.html','revision_cvc_complet.html'];
+  var LABELS = {
+    'revision_tuyaux_soudure.html':'Tuyaux & Soudure',
+    'revision_sanitaire_evacuation.html':'Sanitaire & \u00c9vacuation',
+    'revision_cvc_complet.html':'CVC \u2014 ECS, VMC, Solaire'
+  };
+  var MODULE = location.pathname.split('/').pop() || 'index.html';
+  var KEY = 'ticcser_progress';
+  function load(){ try{ return JSON.parse(localStorage.getItem(KEY)) || {}; }catch(e){ return {}; } }
+  function save(d){ try{ localStorage.setItem(KEY, JSON.stringify(d)); }catch(e){} }
+
+  // module ouvert = "commenc\u00e9" + dernier consult\u00e9
+  var d = load();
+  d[MODULE] = d[MODULE] || {};
+  d[MODULE].visited = true;
+  save(d);
+  try{ localStorage.setItem('ticcser_last', MODULE); }catch(e){}
+
+  // bouton "Module suivant" inject\u00e9 dans l'\u00e9cran de r\u00e9sultat (ou retour accueil si dernier)
+  var result = document.querySelector('#quizResult .result');
+  if (result){
+    var i = ORDER.indexOf(MODULE);
+    var nextId = (i > -1 && i < ORDER.length - 1) ? ORDER[i+1] : null;
+    var a = document.createElement('a');
+    a.style.cssText = 'display:block;margin-top:10px;text-decoration:none;text-align:center;'
+      + 'border:1.5px solid var(--navy);background:#fff;color:var(--navy);'
+      + "font-family:'Archivo',sans-serif;font-weight:800;font-size:1rem;padding:13px;border-radius:12px";
+    if (nextId){ a.href = nextId; a.textContent = 'Module suivant : ' + LABELS[nextId] + ' \u2192'; }
+    else { a.href = 'index.html'; a.textContent = '\u2190 Tous les modules'; }
+    result.appendChild(a);
+  }
+
+  // enregistre le score \u00e0 la fin du quiz (lit le % affich\u00e9, sans r\u00e9\u00e9crire le quiz)
+  if (typeof showResult === 'function'){
+    var _orig = showResult;
+    showResult = function(){
+      _orig.apply(this, arguments);
+      var el = document.getElementById('rBig');
+      if(!el) return;
+      var pct = parseInt(el.textContent, 10);
+      if(isNaN(pct)) return;
+      var s = load();
+      s[MODULE] = s[MODULE] || {};
+      s[MODULE].last = pct;
+      s[MODULE].best = Math.max(s[MODULE].best || 0, pct);
+      s[MODULE].attempts = (s[MODULE].attempts || 0) + 1;
+      save(s);
+    };
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fiche révision — Tuyaux & Soudure</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f4f1ea; --bg2:#ffffff; --panel:#ffffff; --line:#d9d3c6;
+    --txt:#0f1f33; --muted:#5b6b7d;
+    --navy:#143a5a; --navy2:#1d5a86; --accent:#c2562b; --green:#1f7a4d;
+    /* domaines (tuyaux & soudure) */
+    --d-soa:#b3261e; --d-cuivre:#c2562b; --d-per:#1f4f8b; --d-multi:#0f6f63;
+    --d-acier:#1d5a86; --d-zingue:#5b6b7d; --d-fonte:#9a6700; --d-pehd:#143a5a;
+    --d-pvc:#7a4d8c; --d-corresp:#1f7a4d;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:"IBM Plex Sans",sans-serif;background:var(--bg);color:var(--txt);
+    line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh;
+    background-image:
+      linear-gradient(rgba(20,58,90,.035) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(20,58,90,.035) 1px,transparent 1px);
+    background-size:26px 26px;
+  }
+  .wrap{max-width:760px;margin:0 auto;padding:22px 16px 60px}
+
+  header{margin-bottom:18px}
+  .kicker{font-family:"IBM Plex Mono",monospace;font-size:.72rem;letter-spacing:.2em;color:var(--accent);text-transform:uppercase}
+  h1{font-family:"Archivo",sans-serif;font-weight:800;font-size:2rem;line-height:1.05;letter-spacing:-.01em;margin:.15em 0 .1em;color:var(--navy)}
+  h1 .amp{color:var(--accent)}
+  .sub{color:var(--muted);font-size:.9rem}
+  .src-note{margin-top:10px;font-family:"IBM Plex Mono",monospace;font-size:.7rem;color:var(--muted);border-left:3px solid var(--accent);padding-left:10px;line-height:1.6}
+
+  .tabs{display:flex;gap:6px;margin:18px 0 14px;background:#e9e3d8;padding:5px;border-radius:14px;border:1px solid var(--line)}
+  .tab{flex:1;border:0;background:transparent;color:var(--muted);font-family:"Archivo",sans-serif;font-weight:700;font-size:.9rem;padding:10px 6px;border-radius:10px;cursor:pointer;transition:.18s;display:flex;align-items:center;justify-content:center;gap:6px}
+  .tab.active{background:linear-gradient(135deg,var(--navy),var(--accent));color:#fff;box-shadow:0 4px 14px rgba(20,58,90,.22)}
+  .tab .ic{font-size:1rem}
+
+  .filters{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+  .chip{font-family:"IBM Plex Mono",monospace;font-size:.7rem;letter-spacing:.03em;padding:6px 11px;border-radius:20px;border:1px solid var(--line);background:#fff;color:var(--muted);cursor:pointer;transition:.15s;text-transform:uppercase}
+  .chip.on{color:#fff;font-weight:600;border-color:transparent}
+  .chip[data-d="all"].on{background:var(--navy)}
+
+  .progress{display:flex;align-items:center;gap:12px;margin-bottom:12px;font-family:"IBM Plex Mono",monospace;font-size:.78rem;color:var(--muted)}
+  .bar{flex:1;height:8px;background:#e3ddd0;border-radius:6px;overflow:hidden;border:1px solid var(--line)}
+  .bar > i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--navy),var(--green));transition:.3s}
+
+  .scene{perspective:1400px;margin-bottom:16px}
+  .card{position:relative;width:100%;min-height:290px;transform-style:preserve-3d;transition:transform .55s cubic-bezier(.4,.2,.2,1);cursor:pointer}
+  .card.flipped{transform:rotateY(180deg)}
+  .face{position:absolute;inset:0;backface-visibility:hidden;border-radius:18px;border:1px solid var(--line);padding:24px 22px;display:flex;flex-direction:column;background:var(--panel);box-shadow:0 12px 30px rgba(20,40,70,.10)}
+  .face.back{transform:rotateY(180deg);background:linear-gradient(160deg,#fbf9f4,#f1ece2)}
+  .face::before{content:"";position:absolute;left:0;top:18px;bottom:18px;width:5px;border-radius:5px;background:var(--dcol,var(--accent))}
+  .meta{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:auto}
+  .dom{font-family:"IBM Plex Mono",monospace;font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--dcol,var(--accent));font-weight:600}
+  .badges{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}
+  .b{font-family:"IBM Plex Mono",monospace;font-size:.62rem;padding:3px 7px;border-radius:20px;border:1px solid var(--line);color:var(--muted);letter-spacing:.03em}
+  .b.crit{background:#fbe9e7;color:#b3261e;border-color:#f0c4bf}
+  .b.eleve{background:#fdf3df;color:#9a6700;border-color:#ecdcad}
+  .q-label,.a-label{font-family:"IBM Plex Mono",monospace;font-size:.66rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+  .q-txt{font-family:"Archivo",sans-serif;font-weight:700;font-size:1.4rem;line-height:1.18;margin-top:8px;color:var(--navy)}
+  .a-txt{font-size:1.12rem;font-weight:500;line-height:1.4;margin-top:8px}
+  .a-txt b{color:var(--navy);font-family:"IBM Plex Mono",monospace;font-weight:600}
+  .src{margin-top:auto;font-family:"IBM Plex Mono",monospace;font-size:.66rem;color:var(--muted);padding-top:14px}
+  .flip-hint{position:absolute;bottom:16px;right:18px;font-family:"IBM Plex Mono",monospace;font-size:.62rem;color:var(--muted);opacity:.7}
+
+  .nav{display:flex;gap:10px}
+  .nav button{flex:1;border:1.5px solid var(--line);background:#fff;color:var(--txt);font-family:"Archivo",sans-serif;font-weight:700;font-size:.92rem;padding:13px;border-radius:12px;cursor:pointer;transition:.15s}
+  .nav button:hover{border-color:var(--navy)}
+  .nav button.know{color:var(--green)}
+  .nav button.know:hover{border-color:var(--green)}
+  .nav button.review{color:var(--accent)}
+  .nav button.review:hover{border-color:var(--accent)}
+  .nav button:active{transform:translateY(1px)}
+
+  .quiz-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;font-family:"IBM Plex Mono",monospace;font-size:.8rem;color:var(--muted)}
+  .score{color:var(--accent);font-weight:600}
+  .quiz-card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:24px 22px;box-shadow:0 12px 30px rgba(20,40,70,.10)}
+  .quiz-card .dom{margin-bottom:14px}
+  .quiz-q{font-family:"Archivo",sans-serif;font-weight:700;font-size:1.32rem;line-height:1.2;margin-bottom:20px;color:var(--navy)}
+  .opts{display:flex;flex-direction:column;gap:10px}
+  .opt{text-align:left;border:1.5px solid var(--line);background:#fff;color:var(--txt);font-family:"IBM Plex Sans",sans-serif;font-size:1.02rem;padding:14px 16px;border-radius:12px;cursor:pointer;transition:.15s;display:flex;gap:10px;align-items:center}
+  .opt:hover:not(.locked){border-color:var(--navy);transform:translateX(3px)}
+  .opt .k{font-family:"IBM Plex Mono",monospace;font-size:.8rem;color:var(--muted);border:1px solid var(--line);border-radius:6px;width:24px;height:24px;display:flex;align-items:center;justify-content:center;flex:none}
+  .opt.good{border-color:var(--green);background:#e3f3ea}
+  .opt.good .k{border-color:var(--green);color:var(--green)}
+  .opt.bad{border-color:var(--d-soa);background:#fbe9e7}
+  .opt.bad .k{border-color:var(--d-soa);color:var(--d-soa)}
+  .expl{margin-top:16px;font-size:.92rem;color:var(--muted);border-left:3px solid var(--accent);padding:8px 0 8px 12px;display:none}
+  .expl.show{display:block}
+  .qbtn{margin-top:18px;width:100%;border:0;background:linear-gradient(135deg,var(--navy),var(--accent));color:#fff;font-family:"Archivo",sans-serif;font-weight:800;font-size:1rem;padding:14px;border-radius:12px;cursor:pointer;transition:.15s}
+  .qbtn:active{transform:translateY(1px)}
+  .qbtn[disabled]{opacity:.45;cursor:not-allowed}
+
+  .result{text-align:center;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:38px 24px;box-shadow:0 12px 30px rgba(20,40,70,.10)}
+  .result .big{font-family:"Archivo",sans-serif;font-weight:800;font-size:3.4rem;line-height:1;color:var(--accent)}
+  .result .lbl{color:var(--muted);font-family:"IBM Plex Mono",monospace;font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;margin:8px 0 4px}
+  .result .verdict{font-family:"Archivo",sans-serif;font-weight:700;font-size:1.25rem;margin:14px 0 22px;color:var(--navy)}
+
+  .search{width:100%;background:#fff;border:1.5px solid var(--line);border-radius:12px;color:var(--txt);font-family:"IBM Plex Sans",sans-serif;font-size:.95rem;padding:12px 14px;margin-bottom:14px}
+  .search::placeholder{color:var(--muted)}
+  .row{background:var(--panel);border:1px solid var(--line);border-left:5px solid var(--dcol,var(--accent));border-radius:12px;padding:13px 15px;margin-bottom:9px}
+  .row .top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:5px}
+  .row .el{font-weight:600;font-size:.97rem;color:var(--navy)}
+  .row .val{font-family:"IBM Plex Mono",monospace;color:var(--accent);font-weight:600;font-size:.92rem;margin:2px 0 5px}
+  .row .foot{display:flex;justify-content:space-between;gap:8px;font-family:"IBM Plex Mono",monospace;font-size:.66rem;color:var(--muted)}
+  .empty{text-align:center;color:var(--muted);padding:30px;font-family:"IBM Plex Mono",monospace;font-size:.85rem}
+
+  .footer{margin-top:30px;text-align:center;font-family:"IBM Plex Mono",monospace;font-size:.66rem;color:var(--muted);line-height:1.7}
+  .hide{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a href="index.html" style="display:inline-flex;align-items:center;gap:6px;text-decoration:none;font-family:'IBM Plex Mono',monospace;font-size:.74rem;letter-spacing:.06em;color:#5b6b7d;border:1px solid #d9d3c6;background:#fff;border-radius:10px;padding:7px 12px;margin-bottom:14px">← Accueil</a>
+  <header>
+    <div class="kicker">Révision terrain · CVC / Plomberie</div>
+    <h1>Tuyaux <span class="amp">&amp;</span> Soudure</h1>
+    <div class="sub">Flashcards · Quiz · Tableau — d'après tes 2 supports de cours</div>
+    <div class="src-note">Source : Adrar Formation — Ch.1 « Postes de soudure oxyacétylénique » + Ch.2 « Les tuyaux ». Aucune valeur inventée. Une valeur incomplète dans le doc est signalée.</div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" data-view="cards"><span class="ic">🃏</span> Flashcards</button>
+    <button class="tab" data-view="quiz"><span class="ic">🎯</span> Quiz</button>
+    <button class="tab" data-view="table"><span class="ic">📋</span> Tableau</button>
+  </div>
+
+  <div class="filters" id="filters"></div>
+
+  <!-- FLASHCARDS -->
+  <section id="view-cards">
+    <div class="progress">
+      <span id="cardCount">1 / 1</span>
+      <div class="bar"><i id="cardBar"></i></div>
+      <span id="knownCount">su : 0</span>
+    </div>
+    <div class="scene">
+      <div class="card" id="card" onclick="flip()">
+        <div class="face front">
+          <div class="meta"><span class="dom" id="fDom">—</span><div class="badges" id="fBadges"></div></div>
+          <div class="q-label">Question</div>
+          <div class="q-txt" id="fQ">—</div>
+          <div class="flip-hint">tape pour retourner ↻</div>
+        </div>
+        <div class="face back">
+          <div class="meta"><span class="dom" id="bDom">—</span></div>
+          <div class="a-label">Réponse</div>
+          <div class="a-txt" id="fA">—</div>
+          <div class="src" id="fSrc">—</div>
+        </div>
+      </div>
+    </div>
+    <div class="nav">
+      <button class="review" onclick="mark(false)">↻ À revoir</button>
+      <button class="know" onclick="mark(true)">✓ Je sais</button>
+    </div>
+  </section>
+
+  <!-- QUIZ -->
+  <section id="view-quiz" class="hide">
+    <div id="quizPlay">
+      <div class="quiz-head">
+        <span id="qProgress">Question 1 / 1</span>
+        <span><span class="score" id="qScore">0 pts</span> · <span class="streak" id="qStreak">série 0🔥</span></span>
+      </div>
+      <div class="quiz-card">
+        <div class="dom" id="qDom">—</div>
+        <div class="quiz-q" id="qQ">—</div>
+        <div class="opts" id="qOpts"></div>
+        <div class="expl" id="qExpl"></div>
+      </div>
+      <button class="qbtn" id="qNext" onclick="nextQuiz()" disabled>Valider une réponse</button>
+    </div>
+    <div id="quizResult" class="hide">
+      <div class="result">
+        <div class="lbl">Score final</div>
+        <div class="big" id="rBig">0%</div>
+        <div class="verdict" id="rVerdict">—</div>
+        <button class="qbtn" onclick="startQuiz()">↻ Rejouer le quiz</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- TABLE -->
+  <section id="view-table" class="hide">
+    <input class="search" id="search" placeholder="Rechercher (ex : acétylène, 75, PVC, sertir…)" oninput="renderTable()">
+    <div id="tableRows"></div>
+  </section>
+
+  <div class="footer">
+    GAUTIER ENERGIES · mémo de révision interactif<br>
+    Lot 1/2 — partie sanitaire (appareils, hauteurs de pose) à ajouter au lot suivant.
+  </div>
+</div>
+
+<script>
+/* ---------- DONNÉES (uniquement issues des 2 documents) ---------- */
+const DOMS = {
+  soa:{label:"Soudure SOA",col:"--d-soa"},
+  cuivre:{label:"Cuivre",col:"--d-cuivre"},
+  per:{label:"PER",col:"--d-per"},
+  multi:{label:"Multicouche",col:"--d-multi"},
+  acier:{label:"Acier",col:"--d-acier"},
+  zingue:{label:"Électro-zingué",col:"--d-zingue"},
+  fonte:{label:"Fonte",col:"--d-fonte"},
+  pehd:{label:"PEHD",col:"--d-pehd"},
+  pvc:{label:"PVC",col:"--d-pvc"},
+  corresp:{label:"Correspondances",col:"--d-corresp"}
+};
+
+const CARDS = [
+  // SOUDURE
+  {d:"soa",q:"Composition de l'air ?",a:"<b>21%</b> O₂ · <b>78%</b> azote · <b>1%</b> gaz rares",t:"C",i:"moy",s:"Ch.1 · L'oxygène"},
+  {d:"soa",q:"Pression de stockage d'une bouteille d'oxygène pleine ?",a:"<b>200 bar</b>",t:"C",i:"eleve",s:"Ch.1 · L'oxygène"},
+  {d:"soa",q:"Couleur de repérage de la bouteille d'oxygène ?",a:"<b>Blanc</b>",t:"O",i:"crit",s:"Ch.1 · L'oxygène"},
+  {d:"soa",q:"Peut-on graisser ce qui touche l'oxygène ?",a:"<b>Jamais.</b> Risque d'explosion (combustion violente au contact des graisses)",t:"O",i:"crit",s:"Ch.1 · L'oxygène"},
+  {d:"soa",q:"À l'état naturel, l'acétylène explose si comprimé au-delà de ?",a:"<b>1,5 bar</b>",t:"O",i:"crit",s:"Ch.1 · L'acétylène"},
+  {d:"soa",q:"Dissous dans l'acétone, l'acétylène peut être comprimé jusqu'à ?",a:"<b>15 bar</b>",t:"C",i:"eleve",s:"Ch.1 · L'acétylène"},
+  {d:"soa",q:"Inclinaison minimale d'une bouteille d'acétylène ?",a:"<b>30°</b> — jamais moins (écoulement de l'acétone)",t:"O",i:"crit",s:"Ch.1 · L'acétylène"},
+  {d:"soa",q:"Couleur de repérage de la bouteille d'acétylène ?",a:"<b>Havane (marron)</b>",t:"O",i:"crit",s:"Ch.1 · L'acétylène"},
+  {d:"soa",q:"L'acétylène s'enflamme au contact d'un corps chaud à partir de ?",a:"<b>450 °C</b>",t:"O",i:"crit",s:"Ch.1 · Sécurité"},
+  {d:"soa",q:"L'acétylène devient explosif dans l'air au-delà de ?",a:"<b>3 %</b>",t:"O",i:"crit",s:"Ch.1 · Sécurité"},
+  {d:"soa",q:"Pression d'utilisation de l'oxygène au chalumeau ?",a:"<b>1,5 bar</b> (jet central HP)",t:"C",i:"eleve",s:"Ch.1 · Chalumeau"},
+  {d:"soa",q:"Pression d'utilisation de l'acétylène au chalumeau ?",a:"<b>0,5 bar</b> (BP, entraîné par dépression)",t:"C",i:"eleve",s:"Ch.1 · Chalumeau"},
+  {d:"soa",q:"Filetage du raccord côté acétylène ?",a:"<b>Pas de vis à gauche</b>",t:"C",i:"eleve",s:"Ch.1 · Manodétendeur"},
+  {d:"soa",q:"Diamètres des tuyaux (boyaux) de soudure ?",a:"<b>6×11</b> et <b>9×16</b> mm",t:"C",i:"moy",s:"Ch.1 · Tuyaux"},
+  {d:"soa",q:"Couleur des tuyaux de soudure ?",a:"<b>Rouge</b> = acétylène · <b>Bleu</b> = oxygène — ne jamais intervertir",t:"O",i:"crit",s:"Ch.1 · Tuyaux"},
+  {d:"soa",q:"Combien de jeux d'anti-retour pare-flamme si le tuyau dépasse 20 m ?",a:"<b>2 jeux</b> : un au détendeur + un au chalumeau",t:"O",i:"crit",s:"Ch.1 · Accessoires"},
+  {d:"soa",q:"Chalumeau le plus utilisé dans la profession ?",a:"<b>N°0</b> — débit acétylène 63 à 400 L/h",t:"C",i:"eleve",s:"Ch.1 · Chalumeaux"},
+  {d:"soa",q:"Ratio pour dimensionner une buse afin de souder l'acier ?",a:"<b>75 L/h par mm</b> d'épaisseur",t:"C",i:"crit",s:"Ch.1 · Buses"},
+  {d:"soa",q:"Quelle buse pour souder le cuivre ?",a:"Buse <b>160</b> ou <b>200</b> (épaisseur cuivre ≈ 1 mm)",t:"R",i:"eleve",s:"Ch.1 · Buses"},
+  {d:"soa",q:"Quelle flamme assure une fusion correcte et maîtrisée ?",a:"La <b>flamme neutre</b> (égales proportions O₂ / acétylène)",t:"C",i:"eleve",s:"Ch.1 · Flammes"},
+  // CUIVRE
+  {d:"cuivre",q:"Point de fusion de la brasure tendre (étain) ?",a:"<b>232 °C</b>",t:"C",i:"eleve",s:"Ch.2 p.2"},
+  {d:"cuivre",q:"Point de fusion de la brasure forte (phosphore) ?",a:"<b>850 °C</b>",t:"C",i:"eleve",s:"Ch.2 p.2"},
+  {d:"cuivre",q:"Norme et longueur de barre du tube cuivre écroui demi-dur ?",a:"Norme <b>EN 1057</b> + NF · barre de <b>5 m</b>",t:"O",i:"eleve",s:"Ch.2 p.2"},
+  {d:"cuivre",q:"Règle de diamètre du cuivre (épaisseur 1 mm) ?",a:"Ø intérieur = Ø extérieur <b>− 2 mm</b> (ex : 22×1 → int. 20)",t:"C",i:"eleve",s:"Ch.2 p.3"},
+  {d:"cuivre",q:"Le tube Wicu est encastrable sans fourreau si la température ne dépasse pas ?",a:"<b>60 °C</b> (EF, EC, gaz naturel)",t:"F",i:"eleve",s:"Ch.2 p.4"},
+  {d:"cuivre",q:"Plage de diamètres du cuivre gaz ?",a:"<b>12 à 54 mm</b>",t:"C",i:"eleve",s:"Ch.2 p.5"},
+  {d:"cuivre",q:"Cuivre gaz : distance mini entre brasage/cintrage à chaud et un assemblage serti ?",a:"<b>1 m</b> sur la même installation",t:"O",i:"crit",s:"Ch.2 p.5"},
+  {d:"cuivre",q:"Comment reconnaître un raccord à sertir pour le gaz ?",a:"Joint <b>nitrile</b> · marquage <b>ATG</b> · couleur <b>jaune</b>",t:"O",i:"eleve",s:"Ch.2 p.5"},
+  // PER
+  {d:"per",q:"Le PER est-il autorisé pour le gaz ?",a:"<b>Interdit pour le gaz</b>",t:"O",i:"crit",s:"Ch.2 p.6"},
+  {d:"per",q:"PER classe 2 (eau chaude sanitaire) ?",a:"<b>70 °C</b> — pression : non précisée dans le document (« 70°C à bar »)",t:"C",i:"eleve",s:"Ch.2 p.6"},
+  {d:"per",q:"PER classe 0 (chauffage traditionnel) ?",a:"<b>90 °C / 4 bars</b>",t:"C",i:"eleve",s:"Ch.2 p.6"},
+  {d:"per",q:"PER classe 1 (chauffage par le sol) ?",a:"<b>50 °C / 6 bars</b>",t:"C",i:"eleve",s:"Ch.2 p.6"},
+  {d:"per",q:"Code couleur du PER ?",a:"<b>Bleu</b> EFS · <b>Rouge</b> ECS · <b>Blanc</b> chauffage radiateur",t:"C",i:"moy",s:"Ch.2 p.6"},
+  {d:"per",q:"Diamètres des tubes PER nus / pré-fourreautés ?",a:"<b>12×1,1 · 16×1,5 · 20×1,9 · 25×2,3</b>",t:"C",i:"eleve",s:"Ch.2 p.7"},
+  {d:"per",q:"Quel PER pour le plancher chauffant/rafraîchissant ?",a:"Le PER <b>BAO</b> (barrière anti-oxygène) — évite algues/boues dans les échangeurs",t:"C",i:"eleve",s:"Ch.2 p.8"},
+  {d:"per",q:"Comment fixer le PER ?",a:"Par <b>colliers</b>, <b>pas</b> de crochets à cheville (libre dilatation)",t:"R",i:"eleve",s:"Ch.2 p.8"},
+  // MULTICOUCHE
+  {d:"multi",q:"Les classes du multicouche ?",a:"<b>2</b> EF/ECS · <b>4</b> radiateurs BT + plancher · <b>5</b> radiateurs HT · « eau glacée »",t:"C",i:"eleve",s:"Ch.2 p.10"},
+  {d:"multi",q:"Dilatation du multicouche ?",a:"Comparable au <b>cuivre</b> · <b>7×</b> inférieure au matériau de synthèse",t:"C",i:"moy",s:"Ch.2 p.13"},
+  {d:"multi",q:"Multicouche et gaz ?",a:"<b>Pas du tout</b> — chauffage + sanitaire uniquement",t:"O",i:"crit",s:"Ch.2 p.13"},
+  {d:"multi",q:"Plage de diamètres de la gamme COMAP MultiSkin ?",a:"<b>16 à 63 mm</b>",t:"F",i:"moy",s:"Ch.2 p.12"},
+  // ACIER
+  {d:"acier",q:"Acier noir : usage, longueur de barre, interdiction ?",a:"Chauffage + gaz · barre <b>6,40 m</b> · <b>interdit en sanitaire</b>",t:"O",i:"crit",s:"Ch.2 p.14"},
+  {d:"acier",q:"Température de fusion de l'acier ?",a:"≈ <b>1500 °C</b>",t:"C",i:"moy",s:"Ch.2 p.14"},
+  {d:"acier",q:"À quoi correspond 1/2\" en acier (DN et Ø ext) ?",a:"<b>DN15</b> · Ø <b>21,3 mm</b> (ancien 15/21)",t:"C",i:"crit",s:"Ch.2 p.15"},
+  {d:"acier",q:"Sur l'acier galvanisé, quelle soudure est interdite ?",a:"La <b>soudure autogène</b> → faire une <b>soudobrasure</b>",t:"O",i:"crit",s:"Ch.2 p.16"},
+  {d:"acier",q:"Usages de l'acier galvanisé ?",a:"Réseaux <b>sanitaires</b> et <b>incendie</b>",t:"C",i:"eleve",s:"Ch.2 p.16"},
+  // ZINGUÉ
+  {d:"zingue",q:"Électro-zingué : pression et température de service max (circuit d'eau) ?",a:"<b>16 bar</b> · <b>140 °C</b> (selon le raccord)",t:"F",i:"eleve",s:"Ch.2 p.16"},
+  {d:"zingue",q:"Électro-zingué et eau potable ?",a:"<b>Ne convient pas</b> à l'eau potable",t:"O",i:"crit",s:"Ch.2 p.17"},
+  {d:"zingue",q:"Électro-zingué : longueur de barre et assemblage ?",a:"Barre <b>6,4 m</b> · assemblage par <b>sertissage</b> (joint torique)",t:"C",i:"moy",s:"Ch.2 p.17"},
+  // FONTE
+  {d:"fonte",q:"Usage principal du tube fonte ?",a:"Évacuations <b>EU / EV / EP</b> — écoulement par gravité",t:"C",i:"eleve",s:"Ch.2 p.18"},
+  {d:"fonte",q:"Tenue en température du tube fonte ?",a:"<b>80 °C</b> ponctuel · <b>95 °C</b> en pointe",t:"C",i:"eleve",s:"Ch.2 p.18"},
+  {d:"fonte",q:"Coefficient de dilatation et longueur de barre de la fonte ?",a:"<b>0,0105 mm/m/°C</b> · barre <b>3 m</b>",t:"C",i:"moy",s:"Ch.2 p.18"},
+  {d:"fonte",q:"Les deux types de fonte ?",a:"<b>SMU</b> (bouts lisses, colliers inox/manchon) · <b>SME</b> (emboîture, joints élastomères)",t:"C",i:"moy",s:"Ch.2 p.18"},
+  // PEHD
+  {d:"pehd",q:"Épaisseur mini du lit de sable sous un tube PEHD ?",a:"<b>≥ 10 cm</b> (fond propre, sans pierre)",t:"O",i:"crit",s:"Ch.2 p.23"},
+  {d:"pehd",q:"Rayon de courbure mini du PEHD ?",a:"<b>R &gt; 25 × Ø</b> — à <b>doubler</b> par temps froid (0 °C)",t:"O",i:"eleve",s:"Ch.2 p.23"},
+  {d:"pehd",q:"Hauteur du grillage avertisseur au-dessus du tube PEHD ?",a:"<b>20 cm</b>, de couleur <b>bleue</b>",t:"O",i:"crit",s:"Ch.2 p.24"},
+  {d:"pehd",q:"Dilatation du PEHD ?",a:"<b>40 cm pour 100 m</b> (pour ΔT de 20 °C)",t:"Ex",i:"moy",s:"Ch.2 p.23"},
+  {d:"pehd",q:"Quel PEHD est qualité eau potable ?",a:"Le tube à <b>filet bleu</b> (NF) · le noir sans filet = puisage/arrosage",t:"O",i:"crit",s:"Ch.2 p.19"},
+  {d:"pehd",q:"Granulométrie du matériau d'enrobage PEHD ?",a:"<b>0,1 à 5 mm</b>, compactable, sans pierre",t:"O",i:"eleve",s:"Ch.2 p.24"},
+  // PVC
+  {d:"pvc",q:"Diamètres courants et longueur de barre du PVC évacuation ?",a:"<b>32 · 40 · 50 · 63 mm</b> (Ø extérieur) · barre <b>4 m</b>",t:"C",i:"eleve",s:"Ch.2 p.26"},
+  {d:"pvc",q:"Peut-on chauffer / souder le PVC ?",a:"<b>Interdit de chauffer</b> · se travaille <b>sans soudure</b> (collage)",t:"O",i:"crit",s:"Ch.2 p.26"},
+  {d:"pvc",q:"Distances max entre points fixes en PVC ?",a:"<b>3 m</b> appareil · <b>4 m</b> vertical · <b>8 m</b> collecteur horizontal",t:"O",i:"crit",s:"Ch.2 p.27"},
+  {d:"pvc",q:"Distance entre colliers (PVC évacuation) ?",a:"Horizontal ≤63 : <b>0,5 m</b> · &gt;63 : <b>0,8 m</b> · Vertical : <b>2,7 m</b> max",t:"O",i:"eleve",s:"Ch.2 p.27"},
+  {d:"pvc",q:"Peut-on poser un collier sur un coude PVC ?",a:"<b>Non</b> — distance d'au moins <b>15 cm</b>",t:"O",i:"eleve",s:"Ch.2 p.27"},
+  // CORRESPONDANCES
+  {d:"corresp",q:"Correspondances pouce → DN → Ø extérieur (acier) ?",a:"½\"=DN15=Ø21,3 · ¾\"=DN20=Ø26,9 · 1\"=DN25=Ø33,7 · 1\"½=DN40=Ø48,3 · 2\"=DN50=Ø60,3",t:"C",i:"crit",s:"Ch.2 p.30"}
+];
+
+const QUIZ = [
+  {d:"soa",q:"Pression de réglage de l'oxygène au chalumeau ?",o:["0,5 bar","1,5 bar","3 bar","15 bar"],c:1,e:"L'oxygène = 1,5 bar (jet central HP). L'acétylène = 0,5 bar."},
+  {d:"soa",q:"Pression de réglage de l'acétylène au chalumeau ?",o:["0,5 bar","1,5 bar","2 bar","4 bar"],c:0,e:"Acétylène = 0,5 bar, entraîné par la dépression du jet d'oxygène."},
+  {d:"soa",q:"Inclinaison minimale d'une bouteille d'acétylène ?",o:["15°","30°","45°","90°"],c:1,e:"Jamais moins de 30° pour éviter l'écoulement de l'acétone."},
+  {d:"soa",q:"Ratio pour dimensionner une buse afin de souder l'acier ?",o:["50 L/h par mm","75 L/h par mm","100 L/h par mm","160 L/h par mm"],c:1,e:"75 L/h par mm d'épaisseur. Le cuivre (ép. ≈1 mm) → buse 160 ou 200."},
+  {d:"soa",q:"L'acétylène devient explosif dans l'air au-delà de ?",o:["1 %","3 %","10 %","21 %"],c:1,e:"Au-delà de 3 % dans l'air → mélange explosif. Auto-inflammation dès 450 °C."},
+  {d:"soa",q:"Couleur de repérage de la bouteille d'oxygène ?",o:["Blanc","Marron","Rouge","Bleu"],c:0,e:"Oxygène = blanc. Acétylène = havane (marron). À ne jamais confondre."},
+  {d:"soa",q:"Couleur du tuyau d'acétylène ?",o:["Bleu","Rouge","Jaune","Vert"],c:1,e:"Rouge = acétylène, Bleu = oxygène. Ne jamais intervertir (risque d'inflammation)."},
+  {d:"cuivre",q:"Point de fusion de la brasure tendre (étain) ?",o:["180 °C","232 °C","450 °C","850 °C"],c:1,e:"Tendre (étain) = 232 °C. Forte (phosphore) = 850 °C."},
+  {d:"cuivre",q:"Brasure forte au phosphore, point de fusion ?",o:["232 °C","450 °C","850 °C","1500 °C"],c:2,e:"850 °C pour la brasure forte au phosphore."},
+  {d:"cuivre",q:"Le tube Wicu est encastrable sans fourreau jusqu'à ?",o:["40 °C","50 °C","60 °C","80 °C"],c:2,e:"Sans fourreau si le fluide ne dépasse pas 60 °C."},
+  {d:"per",q:"Le PER est interdit pour…",o:["L'eau chaude","Le chauffage","Le gaz","Le plancher chauffant"],c:2,e:"Le PER (comme le multicouche) est interdit pour le gaz."},
+  {d:"per",q:"PER classe 0 (chauffage traditionnel) ?",o:["50 °C / 6 b","70 °C","90 °C / 4 b","110 °C"],c:2,e:"Classe 0 = 90 °C / 4 bars. Classe 2 (ECS) = 70 °C. Classe 1 (plancher) = 50 °C / 6 b."},
+  {d:"acier",q:"½ pouce correspond à quel DN ?",o:["DN12","DN15","DN20","DN26"],c:1,e:"½\" = DN15 = 15/21 = Ø ext. 21,3 mm."},
+  {d:"acier",q:"Sur l'acier galvanisé, quelle soudure est interdite ?",o:["La soudobrasure","La soudure autogène","Le vissage","Le sertissage"],c:1,e:"Soudure autogène interdite sur galvanisé → soudobrasure (ne pas détériorer la galva)."},
+  {d:"acier",q:"L'acier noir est interdit pour…",o:["Le chauffage","Le gaz","Le sanitaire","La vapeur"],c:2,e:"Acier noir = chauffage + gaz, mais interdit en sanitaire."},
+  {d:"pehd",q:"Hauteur du grillage avertisseur au-dessus d'un tube PEHD ?",o:["10 cm","20 cm","40 cm","70 cm"],c:1,e:"Grillage bleu à 20 cm au-dessus du tube. Lit de sable ≥ 10 cm dessous."},
+  {d:"pehd",q:"Lit de sable minimum sous un tube PEHD ?",o:["5 cm","10 cm","20 cm","30 cm"],c:1,e:"Au moins 10 cm de sable, fond propre, sans matériau concassé."},
+  {d:"pvc",q:"Distance max entre points fixes pour un collecteur horizontal PVC ?",o:["3 m","4 m","8 m","15 m"],c:2,e:"Appareil 3 m · vertical 4 m · collecteur horizontal 8 m."}
+];
+
+/* ---------- ÉTAT ---------- */
+let activeDom="all";
+let view="cards";
+
+/* flashcards */
+let order=[], idx=0, flipped=false;
+const known=new Set();
+
+/* quiz */
+let quizList=[], qi=0, score=0, streak=0, maxStreak=0, locked=false;
+
+/* ---------- FILTRES ---------- */
+function buildFilters(){
+  const f=document.getElementById("filters");
+  const root=getComputedStyle(document.documentElement);
+  let html=`<button class="chip on" data-d="all" onclick="setDom('all')">Tout</button>`;
+  Object.entries(DOMS).forEach(([k,v])=>{
+    const c=root.getPropertyValue(v.col).trim();
+    html+=`<button class="chip" data-d="${k}" style="--c:${c}" onclick="setDom('${k}')">${v.label}</button>`;
+  });
+  f.innerHTML=html;
+}
+function setDom(d){
+  activeDom=d;
+  const root=getComputedStyle(document.documentElement);
+  document.querySelectorAll(".chip").forEach(ch=>{
+    const on=ch.dataset.d===d;
+    ch.classList.toggle("on",on);
+    if(on && d!=="all"){const c=root.getPropertyValue(DOMS[d].col).trim();ch.style.background=c;ch.style.color="#fff";}
+    else if(d!=="all"){ch.style.background="";ch.style.color="";}
+  });
+  if(view==="cards"){buildOrder();render();}
+  if(view==="quiz"){startQuiz();}
+  if(view==="table"){renderTable();}
+}
+
+/* ---------- VUES ---------- */
+function show(v){
+  view=v;
+  document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active",t.dataset.view===v));
+  document.getElementById("view-cards").classList.toggle("hide",v!=="cards");
+  document.getElementById("view-quiz").classList.toggle("hide",v!=="quiz");
+  document.getElementById("view-table").classList.toggle("hide",v!=="table");
+  if(v==="cards"){buildOrder();render();}
+  if(v==="quiz"){startQuiz();}
+  if(v==="table"){renderTable();}
+}
+document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>show(t.dataset.view)));
+
+/* ---------- FLASHCARDS ---------- */
+function pool(){return CARDS.filter(c=>activeDom==="all"||c.d===activeDom);}
+function buildOrder(){order=pool().map((_,i)=>i);idx=0;flipped=false;}
+function render(){
+  const list=pool();
+  if(!list.length)return;
+  if(idx>=list.length)idx=0;
+  const c=list[idx];
+  const root=getComputedStyle(document.documentElement);
+  const col=root.getPropertyValue(DOMS[c.d].col).trim();
+  document.getElementById("card").classList.remove("flipped");flipped=false;
+  document.getElementById("card").style.setProperty("--dcol",col);
+  document.getElementById("fDom").textContent=DOMS[c.d].label;
+  document.getElementById("bDom").textContent=DOMS[c.d].label;
+  document.getElementById("fDom").style.color=col;
+  document.getElementById("bDom").style.color=col;
+  document.getElementById("fQ").textContent=c.q;
+  document.getElementById("fA").innerHTML=c.a;
+  document.getElementById("fSrc").textContent=c.s;
+  const tlabel={O:"Obligation",R:"Reco",Ex:"Exemple",F:"Fabricant",C:"Cours"}[c.t]||c.t;
+  const ilabel={crit:"Critique",eleve:"Élevée",moy:"Moyenne"}[c.i];
+  document.getElementById("fBadges").innerHTML=
+    `<span class="b ${c.i==='crit'?'crit':c.i==='eleve'?'eleve':''}">${ilabel}</span>`+
+    `<span class="b">${tlabel}</span>`;
+  document.getElementById("cardCount").textContent=`${idx+1} / ${list.length}`;
+  document.getElementById("cardBar").style.width=((idx+1)/list.length*100)+"%";
+  document.getElementById("knownCount").textContent="su : "+known.size;
+}
+function flip(){flipped=!flipped;document.getElementById("card").classList.toggle("flipped",flipped);}
+function mark(ok){
+  const list=pool();
+  const c=list[idx];
+  const gi=CARDS.indexOf(c);
+  if(ok)known.add(gi);else known.delete(gi);
+  idx=(idx+1)%list.length;
+  render();
+}
+
+/* ---------- QUIZ ---------- */
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function startQuiz(){
+  quizList=shuffle(QUIZ.filter(q=>activeDom==="all"||q.d===activeDom).slice());
+  qi=0;score=0;streak=0;maxStreak=0;locked=false;
+  document.getElementById("quizResult").classList.add("hide");
+  document.getElementById("quizPlay").classList.remove("hide");
+  renderQuiz();
+}
+function renderQuiz(){
+  if(!quizList.length){
+    document.getElementById("qQ").textContent="Aucune question pour ce filtre.";
+    document.getElementById("qOpts").innerHTML="";
+    document.getElementById("qDom").textContent="—";
+    document.getElementById("qNext").disabled=true;
+    return;
+  }
+  locked=false;
+  const q=quizList[qi];
+  const root=getComputedStyle(document.documentElement);
+  const col=root.getPropertyValue(DOMS[q.d].col).trim();
+  document.getElementById("qDom").textContent=DOMS[q.d].label;
+  document.getElementById("qDom").style.color=col;
+  document.getElementById("qQ").textContent=q.q;
+  document.getElementById("qProgress").textContent=`Question ${qi+1} / ${quizList.length}`;
+  document.getElementById("qScore").textContent=score+" pts";
+  document.getElementById("qStreak").textContent=`série ${streak}🔥`;
+  const keys=["A","B","C","D"];
+  document.getElementById("qOpts").innerHTML=q.o.map((o,i)=>
+    `<button class="opt" data-i="${i}" onclick="answer(${i})"><span class="k">${keys[i]}</span>${o}</button>`).join("");
+  const ex=document.getElementById("qExpl");ex.className="expl";ex.textContent="";
+  document.getElementById("qNext").disabled=true;
+  document.getElementById("qNext").textContent="Valider une réponse";
+}
+function answer(i){
+  if(locked)return;locked=true;
+  const q=quizList[qi];
+  document.querySelectorAll(".opt").forEach(b=>{
+    b.classList.add("locked");
+    const bi=+b.dataset.i;
+    if(bi===q.c)b.classList.add("good");
+    else if(bi===i)b.classList.add("bad");
+  });
+  if(i===q.c){score+=10;streak++;maxStreak=Math.max(maxStreak,streak);}
+  else{streak=0;}
+  document.getElementById("qScore").textContent=score+" pts";
+  document.getElementById("qStreak").textContent=`série ${streak}🔥`;
+  const ex=document.getElementById("qExpl");ex.textContent=q.e;ex.classList.add("show");
+  const btn=document.getElementById("qNext");btn.disabled=false;
+  btn.textContent=(qi+1<quizList.length)?"Question suivante →":"Voir le résultat";
+}
+function nextQuiz(){
+  if(qi+1<quizList.length){qi++;renderQuiz();}
+  else{showResult();}
+}
+function showResult(){
+  document.getElementById("quizPlay").classList.add("hide");
+  document.getElementById("quizResult").classList.remove("hide");
+  const pct=Math.round(score/(quizList.length*10)*100);
+  document.getElementById("rBig").textContent=pct+"%";
+  let v;
+  if(pct===100)v="Sans faute. Tu peux poser sur chantier 🔧";
+  else if(pct>=80)v="Solide. Quelques valeurs à revoir.";
+  else if(pct>=50)v="Ça vient. Refais un tour de flashcards.";
+  else v="À retravailler — passe en mode Flashcards.";
+  document.getElementById("rVerdict").textContent=v+`  (série max : ${maxStreak})`;
+}
+
+/* ---------- TABLEAU ---------- */
+function renderTable(){
+  const term=document.getElementById("search").value.toLowerCase().trim();
+  const root=getComputedStyle(document.documentElement);
+  const list=CARDS.filter(c=>{
+    if(activeDom!=="all"&&c.d!==activeDom)return false;
+    if(!term)return true;
+    const blob=(c.q+" "+c.a+" "+DOMS[c.d].label+" "+c.s).toLowerCase();
+    return blob.includes(term);
+  });
+  const box=document.getElementById("tableRows");
+  if(!list.length){box.innerHTML=`<div class="empty">Aucun résultat.</div>`;return;}
+  const tlabel={O:"Obligation",R:"Reco",Ex:"Exemple",F:"Fabricant",C:"Cours"};
+  const ilabel={crit:"Critique",eleve:"Élevée",moy:"Moyenne"};
+  box.innerHTML=list.map(c=>{
+    const col=root.getPropertyValue(DOMS[c.d].col).trim();
+    return `<div class="row" style="--dcol:${col}">
+      <div class="top"><span class="el">${c.q.replace(/\?$/,'')}</span>
+      <span class="b ${c.i==='crit'?'crit':c.i==='eleve'?'eleve':''}">${ilabel[c.i]}</span></div>
+      <div class="val">${c.a}</div>
+      <div class="foot"><span>${DOMS[c.d].label} · ${tlabel[c.t]}</span><span>${c.s}</span></div>
+    </div>`;
+  }).join("");
+}
+
+/* ---------- INIT ---------- */
+buildFilters();
+buildOrder();
+render();
+</script>
+
+<!-- UI/UX uniquement : retour accueil + suivi de progression + module suivant -->
+<script>
+(function(){
+  var ORDER = ['revision_tuyaux_soudure.html','revision_sanitaire_evacuation.html','revision_cvc_complet.html'];
+  var LABELS = {
+    'revision_tuyaux_soudure.html':'Tuyaux & Soudure',
+    'revision_sanitaire_evacuation.html':'Sanitaire & \u00c9vacuation',
+    'revision_cvc_complet.html':'CVC \u2014 ECS, VMC, Solaire'
+  };
+  var MODULE = location.pathname.split('/').pop() || 'index.html';
+  var KEY = 'ticcser_progress';
+  function load(){ try{ return JSON.parse(localStorage.getItem(KEY)) || {}; }catch(e){ return {}; } }
+  function save(d){ try{ localStorage.setItem(KEY, JSON.stringify(d)); }catch(e){} }
+
+  // module ouvert = "commenc\u00e9" + dernier consult\u00e9
+  var d = load();
+  d[MODULE] = d[MODULE] || {};
+  d[MODULE].visited = true;
+  save(d);
+  try{ localStorage.setItem('ticcser_last', MODULE); }catch(e){}
+
+  // bouton "Module suivant" inject\u00e9 dans l'\u00e9cran de r\u00e9sultat (ou retour accueil si dernier)
+  var result = document.querySelector('#quizResult .result');
+  if (result){
+    var i = ORDER.indexOf(MODULE);
+    var nextId = (i > -1 && i < ORDER.length - 1) ? ORDER[i+1] : null;
+    var a = document.createElement('a');
+    a.style.cssText = 'display:block;margin-top:10px;text-decoration:none;text-align:center;'
+      + 'border:1.5px solid var(--navy);background:#fff;color:var(--navy);'
+      + "font-family:'Archivo',sans-serif;font-weight:800;font-size:1rem;padding:13px;border-radius:12px";
+    if (nextId){ a.href = nextId; a.textContent = 'Module suivant : ' + LABELS[nextId] + ' \u2192'; }
+    else { a.href = 'index.html'; a.textContent = '\u2190 Tous les modules'; }
+    result.appendChild(a);
+  }
+
+  // enregistre le score \u00e0 la fin du quiz (lit le % affich\u00e9, sans r\u00e9\u00e9crire le quiz)
+  if (typeof showResult === 'function'){
+    var _orig = showResult;
+    showResult = function(){
+      _orig.apply(this, arguments);
+      var el = document.getElementById('rBig');
+      if(!el) return;
+      var pct = parseInt(el.textContent, 10);
+      if(isNaN(pct)) return;
+      var s = load();
+      s[MODULE] = s[MODULE] || {};
+      s[MODULE].last = pct;
+      s[MODULE].best = Math.max(s[MODULE].best || 0, pct);
+      s[MODULE].attempts = (s[MODULE].attempts || 0) + 1;
+      save(s);
+    };
+  }
+})();
+</script>
+</body>
+</html>

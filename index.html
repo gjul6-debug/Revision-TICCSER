@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Révision TICCSER — Accueil</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- CSS intégré : aucune dépendance au dossier css/. Tout fonctionne à la racine du dépôt. -->
+  <style>
+  :root{
+    --bg:#f4f1ea; --bg2:#ffffff; --panel:#ffffff; --line:#d9d3c6;
+    --txt:#0f1f33; --muted:#5b6b7d; --navy:#143a5a; --navy2:#1d5a86;
+    --accent:#c2562b; --green:#1f7a4d; --purple:#7a4d8c; --gold:#9a6700;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+
+  body{
+    font-family:"IBM Plex Sans",sans-serif;
+    background:var(--bg); color:var(--txt); line-height:1.5;
+    -webkit-font-smoothing:antialiased; min-height:100vh;
+    background-image:
+      linear-gradient(rgba(20,58,90,.035) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(20,58,90,.035) 1px,transparent 1px);
+    background-size:26px 26px;
+  }
+
+  .wrap{max-width:760px;margin:0 auto;padding:22px 16px 60px}
+
+  .hero{margin-bottom:18px}
+  .kicker,.section-label{
+    font-family:"IBM Plex Mono",monospace;font-size:.72rem;letter-spacing:.2em;
+    color:var(--accent);text-transform:uppercase;
+  }
+  h1{
+    font-family:"Archivo",sans-serif;font-weight:800;
+    font-size:clamp(2.25rem, 10vw, 4.5rem);line-height:.95;letter-spacing:-.03em;
+    margin:.12em 0;color:var(--navy);
+  }
+  .amp{color:var(--accent)}
+  .sub{color:var(--muted);font-size:.96rem;max-width:680px}
+  .src-note{
+    margin-top:12px;font-family:"IBM Plex Mono",monospace;font-size:.7rem;
+    color:var(--muted);border-left:3px solid var(--accent);padding-left:10px;line-height:1.6;
+  }
+
+  /* ---------- TABLEAU DE BORD ---------- */
+  .dash{
+    display:grid;grid-template-columns:repeat(2,1fr);gap:9px;
+    margin:20px 0 14px;
+  }
+  .stat{
+    background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    padding:14px 16px;
+  }
+  .stat .num{
+    font-family:"Archivo",sans-serif;font-weight:800;font-size:1.9rem;
+    line-height:1;color:var(--navy);
+  }
+  .stat .num small{font-size:1rem;color:var(--muted);font-weight:700}
+  .stat .lbl{
+    font-family:"IBM Plex Mono",monospace;font-size:.66rem;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--muted);margin-top:6px;
+  }
+
+  /* ---------- REPRENDRE ---------- */
+  .continue{
+    background:var(--navy);color:#fff;border-radius:16px;padding:18px 20px;
+    margin:0 0 18px;display:flex;align-items:center;justify-content:space-between;
+    gap:14px;flex-wrap:wrap;box-shadow:0 12px 30px rgba(20,40,70,.18);
+  }
+  .continue .c-txt .c-lbl{
+    font-family:"IBM Plex Mono",monospace;font-size:.66rem;letter-spacing:.12em;
+    text-transform:uppercase;color:#9fc0db;
+  }
+  .continue .c-txt .c-name{
+    font-family:"Archivo",sans-serif;font-weight:800;font-size:1.15rem;margin-top:2px;
+  }
+  .continue .c-txt .c-meta{font-size:.82rem;color:#c8d8e6;margin-top:3px}
+  .btn{
+    display:inline-block;text-decoration:none;white-space:nowrap;
+    background:var(--accent);color:#fff;font-family:"Archivo",sans-serif;font-weight:700;
+    font-size:.92rem;padding:11px 18px;border-radius:11px;border:0;cursor:pointer;
+    transition:filter .15s ease, transform .15s ease;
+  }
+  .btn:hover{filter:brightness(1.06);transform:translateY(-1px)}
+
+  /* ---------- INTRO ---------- */
+  .intro-panel{
+    background:var(--panel);border:1px solid var(--line);border-radius:18px;
+    padding:22px;margin:0 0 14px;box-shadow:0 12px 30px rgba(20,40,70,.08);
+  }
+  h2{
+    font-family:"Archivo",sans-serif;font-weight:800;color:var(--navy);
+    font-size:1.55rem;line-height:1.1;margin:.2em 0 .35em;
+  }
+  .intro-panel p{color:var(--muted);font-size:.96rem}
+
+  /* ---------- CARTES ---------- */
+  .cards-grid{display:grid;grid-template-columns:1fr;gap:14px;margin:14px 0}
+  .module-card{
+    position:relative;display:block;overflow:hidden;text-decoration:none;color:var(--txt);
+    background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:22px;
+    box-shadow:0 12px 30px rgba(20,40,70,.10);
+    transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+  }
+  .module-card::before{
+    content:"";position:absolute;left:0;top:18px;bottom:18px;width:5px;border-radius:5px;
+    background:var(--card-color,var(--accent));
+  }
+  .module-card:hover{
+    transform:translateY(-3px);box-shadow:0 16px 34px rgba(20,40,70,.15);
+    border-color:rgba(20,58,90,.35);
+  }
+  .card-sanitaire{--card-color:var(--green)}
+  .card-tuyaux{--card-color:var(--accent)}
+  .card-cvc{--card-color:var(--navy2)}
+
+  .card-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:18px}
+  .dom{
+    font-family:"IBM Plex Mono",monospace;font-size:.7rem;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--card-color,var(--accent));font-weight:600;
+  }
+  .badge{
+    font-family:"IBM Plex Mono",monospace;font-size:.62rem;padding:4px 8px;border-radius:20px;
+    border:1px solid var(--line);color:var(--muted);background:#fbf9f4;white-space:nowrap;
+  }
+  h3{
+    font-family:"Archivo",sans-serif;color:var(--navy);font-weight:800;font-size:1.55rem;
+    line-height:1.08;letter-spacing:-.01em;margin-bottom:10px;
+  }
+  .module-card p{color:var(--muted);font-size:.93rem;margin-bottom:14px}
+
+  /* état de progression sur la carte */
+  .state{
+    display:flex;align-items:center;gap:8px;margin-bottom:14px;
+    font-family:"IBM Plex Mono",monospace;font-size:.74rem;
+  }
+  .dot{width:9px;height:9px;border-radius:50%;flex:none;background:var(--line)}
+  .state.is-started .dot{background:var(--gold)}
+  .state.is-done .dot{background:var(--green)}
+  .state .st-txt{color:var(--muted)}
+  .state .st-score{margin-left:auto;color:var(--navy);font-weight:600}
+
+  .card-footer{
+    display:flex;justify-content:space-between;align-items:center;gap:10px;
+    font-family:"Archivo",sans-serif;font-weight:700;color:var(--navy);
+    padding-top:14px;border-top:1px solid var(--line);
+  }
+
+  /* ---------- MEMO ---------- */
+  .memo-panel{display:grid;grid-template-columns:1fr;gap:9px;margin-top:14px}
+  .memo-item{
+    display:flex;gap:12px;align-items:flex-start;background:#fbf9f4;
+    border:1px solid var(--line);border-radius:14px;padding:14px;
+  }
+  .memo-number{
+    font-family:"IBM Plex Mono",monospace;font-size:.72rem;color:var(--accent);
+    border:1px solid var(--line);background:#fff;border-radius:8px;padding:4px 6px;flex:none;
+  }
+  h4{font-family:"Archivo",sans-serif;font-size:1rem;color:var(--navy);margin-bottom:2px}
+  .memo-item p{font-size:.86rem;color:var(--muted)}
+
+  /* ---------- RESET ---------- */
+  .reset-row{margin-top:18px;text-align:center}
+  .reset{
+    background:none;border:1px solid var(--line);color:var(--muted);
+    font-family:"IBM Plex Mono",monospace;font-size:.7rem;letter-spacing:.06em;
+    padding:8px 14px;border-radius:10px;cursor:pointer;transition:border-color .15s ease,color .15s ease;
+  }
+  .reset:hover{border-color:var(--accent);color:var(--accent)}
+
+  .footer{
+    margin-top:24px;text-align:center;font-family:"IBM Plex Mono",monospace;
+    font-size:.66rem;color:var(--muted);line-height:1.7;
+  }
+  .hide{display:none!important}
+
+  @media (min-width:720px){
+    .dash{grid-template-columns:repeat(4,1fr)}
+    .cards-grid{grid-template-columns:1fr 1fr}
+    .memo-panel{grid-template-columns:repeat(3,1fr)}
+    .memo-item{flex-direction:column}
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    *{transition:none!important}
+  }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+
+    <header class="hero">
+      <div class="kicker">Révision terrain · CVC / Plomberie</div>
+      <h1>Révision <span class="amp">TICCSER</span></h1>
+      <p class="sub">
+        Fiches interactives · Flashcards · Quiz · Tableaux — pour réviser vite,
+        proprement, et éviter de chercher une valeur dans 47 captures floues.
+      </p>
+      <div class="src-note">
+        Site collaboratif de révision pour les apprenants de la formation plomberie.
+        Les contenus sont organisés par thèmes et restent des supports de révision,
+        sans recopier intégralement des documents protégés.
+      </div>
+    </header>
+
+    <main>
+
+      <!-- TABLEAU DE BORD (rempli par JS depuis localStorage) -->
+      <section class="dash" aria-label="Ma progression">
+        <div class="stat">
+          <div class="num" id="statTotal">0</div>
+          <div class="lbl">Modules dispo.</div>
+        </div>
+        <div class="stat">
+          <div class="num" id="statStarted">0</div>
+          <div class="lbl">Commencés</div>
+        </div>
+        <div class="stat">
+          <div class="num" id="statDone">0</div>
+          <div class="lbl">Quiz faits</div>
+        </div>
+        <div class="stat">
+          <div class="num" id="statAvg">—</div>
+          <div class="lbl">Score moyen</div>
+        </div>
+      </section>
+
+      <!-- REPRENDRE (affiché seulement si un module a déjà été ouvert) -->
+      <a class="continue hide" id="continuePanel" href="#">
+        <div class="c-txt">
+          <div class="c-lbl">Reprendre où tu t'es arrêté</div>
+          <div class="c-name" id="continueName">—</div>
+          <div class="c-meta" id="continueMeta">—</div>
+        </div>
+        <span class="btn">Continuer →</span>
+      </a>
+
+      <section class="intro-panel">
+        <div class="section-label">Accueil</div>
+        <h2>Choisis une fiche de révision</h2>
+        <p>
+          Chaque module reprend le même principe : flashcards pour mémoriser,
+          quiz pour tester, tableau pour retrouver rapidement les valeurs utiles.
+        </p>
+      </section>
+
+      <section class="cards-grid" aria-label="Modules de révision">
+
+        <a class="module-card card-tuyaux" data-module="revision_tuyaux_soudure.html" href="revision_tuyaux_soudure.html">
+          <div class="card-top">
+            <span class="dom">Tuyaux &amp; soudure</span>
+            <span class="badge">Ch.1 à Ch.2</span>
+          </div>
+          <h3>Tuyaux <span class="amp">&amp;</span> Soudure</h3>
+          <p>
+            Oxyacétylénique, sécurité, cuivre, PER, multicouche, acier, fonte,
+            PEHD, PVC et correspondances de diamètres.
+          </p>
+          <div class="state">
+            <span class="dot"></span>
+            <span class="st-txt">Non commencé</span>
+            <span class="st-score"></span>
+          </div>
+          <div class="card-footer">
+            <span>Réviser</span>
+            <span aria-hidden="true">→</span>
+          </div>
+        </a>
+
+        <a class="module-card card-sanitaire" data-module="revision_sanitaire_evacuation.html" href="revision_sanitaire_evacuation.html">
+          <div class="card-top">
+            <span class="dom">Sanitaire &amp; évacuation</span>
+            <span class="badge">Ch.4 à Ch.10</span>
+          </div>
+          <h3>Sanitaire <span class="amp">&amp;</span> Évacuation</h3>
+          <p>
+            Organes de sécurité, pressions, hauteurs de pose, réseaux d'évacuation,
+            PVC, dimensionnement, eau sanitaire et robinetterie.
+          </p>
+          <div class="state">
+            <span class="dot"></span>
+            <span class="st-txt">Non commencé</span>
+            <span class="st-score"></span>
+          </div>
+          <div class="card-footer">
+            <span>Réviser</span>
+            <span aria-hidden="true">→</span>
+          </div>
+        </a>
+
+        <a class="module-card card-cvc" data-module="revision_cvc_complet.html" href="revision_cvc_complet.html">
+          <div class="card-top">
+            <span class="dom">ECS · VMC · CETI · Solaire</span>
+            <span class="badge">Ch.11 à Ch.15</span>
+          </div>
+          <h3>CVC <span class="amp">—</span> ECS, VMC, Solaire</h3>
+          <p>
+            Eau chaude sanitaire, ventilation (VMC), chauffe-eaux thermodynamiques (CETI)
+            et solaire thermique.
+          </p>
+          <div class="state">
+            <span class="dot"></span>
+            <span class="st-txt">Non commencé</span>
+            <span class="st-score"></span>
+          </div>
+          <div class="card-footer">
+            <span>Réviser</span>
+            <span aria-hidden="true">→</span>
+          </div>
+        </a>
+
+      </section>
+
+      <section class="memo-panel">
+        <div class="memo-item">
+          <span class="memo-number">01</span>
+          <div>
+            <h4>Réviser</h4>
+            <p>Utilise les flashcards pour mémoriser les valeurs importantes.</p>
+          </div>
+        </div>
+        <div class="memo-item">
+          <span class="memo-number">02</span>
+          <div>
+            <h4>Tester</h4>
+            <p>Lance les quiz pour repérer ce qui est acquis ou à reprendre.</p>
+          </div>
+        </div>
+        <div class="memo-item">
+          <span class="memo-number">03</span>
+          <div>
+            <h4>Retrouver</h4>
+            <p>Va dans les tableaux pour chercher rapidement une valeur ou une règle.</p>
+          </div>
+        </div>
+      </section>
+
+      <div class="reset-row">
+        <button class="reset" id="resetBtn" type="button">Réinitialiser ma progression</button>
+      </div>
+
+    </main>
+
+    <footer class="footer">
+      GAUTIER ENERGIES · mémo de révision interactif<br>
+      Accueil des fiches TICCSER — HTML statique hébergé sur GitHub Pages.
+    </footer>
+
+  </div>
+
+  <!-- JS intégré : lit la progression dans localStorage et remplit le tableau de bord -->
+  <script>
+  (function(){
+    var KEY = 'ticcser_progress';
+    var LAST = 'ticcser_last';
+
+    function load(){
+      try { return JSON.parse(localStorage.getItem(KEY)) || {}; }
+      catch(e){ return {}; }
+    }
+
+    var data = load();
+    var cards = Array.prototype.slice.call(document.querySelectorAll('.module-card'));
+    var total = cards.length;
+    var started = 0, done = 0, scoreSum = 0, scoreCount = 0;
+
+    cards.forEach(function(card){
+      var id = card.getAttribute('data-module');
+      var rec = data[id] || {};
+      var stateEl = card.querySelector('.state');
+      var txtEl   = card.querySelector('.st-txt');
+      var scoreEl = card.querySelector('.st-score');
+      var hasScore = typeof rec.best === 'number';
+
+      if (rec.visited) started++;
+      if (hasScore){ done++; scoreSum += rec.best; scoreCount++; }
+
+      if (hasScore){
+        stateEl.classList.add('is-done');
+        txtEl.textContent = 'Quiz fait';
+        scoreEl.textContent = 'meilleur ' + rec.best + '%';
+      } else if (rec.visited){
+        stateEl.classList.add('is-started');
+        txtEl.textContent = 'En cours · quiz non terminé';
+      } else {
+        txtEl.textContent = 'Non commencé';
+      }
+    });
+
+    document.getElementById('statTotal').textContent = total;
+    document.getElementById('statStarted').textContent = started;
+    document.getElementById('statDone').textContent = done;
+    document.getElementById('statAvg').innerHTML = scoreCount
+      ? Math.round(scoreSum / scoreCount) + '<small>%</small>'
+      : '—';
+
+    // Panneau "Reprendre"
+    var lastId = null;
+    try { lastId = localStorage.getItem(LAST); } catch(e){}
+    var lastCard = lastId ? document.querySelector('.module-card[data-module="' + lastId + '"]') : null;
+    if (lastCard){
+      var rec = data[lastId] || {};
+      var panel = document.getElementById('continuePanel');
+      panel.href = lastId;
+      document.getElementById('continueName').textContent =
+        lastCard.querySelector('h3').textContent.trim();
+      document.getElementById('continueMeta').textContent =
+        (typeof rec.last === 'number')
+          ? 'Dernier score : ' + rec.last + '%'
+          : 'Quiz pas encore terminé';
+      panel.classList.remove('hide');
+    }
+
+    // Réinitialisation
+    document.getElementById('resetBtn').addEventListener('click', function(){
+      if (!confirm('Effacer toute ta progression enregistrée sur ce navigateur ?')) return;
+      try {
+        localStorage.removeItem(KEY);
+        localStorage.removeItem(LAST);
+      } catch(e){}
+      location.reload();
+    });
+  })();
+  </script>
+</body>
+</html>
